@@ -7,6 +7,7 @@ import LoginPage from '@/features/auth/LoginPage'
 
 const AdminDashboard = lazy(() => import('@/features/admin/AdminDashboard'))
 const ClientDashboard = lazy(() => import('@/features/client/ClientDashboard'))
+const DataModule = lazy(() => import('@/features/admin/data/DataModule'))
 const DashboardLoading = () => <p className="py-12 text-center text-sm text-muted-foreground" role="status">Cargando panel…</p>
 
 function ProtectedRoute({ role, children }) {
@@ -28,7 +29,7 @@ function AppRoutes() {
       <Route path="/login" element={<PublicOnlyRoute />} />
       <Route path="/admin" element={<ProtectedRoute role="admin"><AppShell role="admin" /></ProtectedRoute>}>
         <Route index element={<Suspense fallback={<DashboardLoading />}><AdminDashboard /></Suspense>} />
-        <Route path="data" element={<ModulePlaceholder title="Datos" description="Fuentes, estructuras y conjuntos de datos." />} />
+        <Route path="data" element={<Suspense fallback={<DashboardLoading />}><DataModule /></Suspense>} />
         <Route path="training" element={<ModulePlaceholder title="Entrenamiento" description="Configuración y seguimiento de entrenamientos." />} />
         <Route path="evaluation" element={<ModulePlaceholder title="Evaluación y publicación" description="Evaluación y ciclo de publicación del modelo." />} />
         <Route path="history" element={<ModulePlaceholder title="Historial" description="Registro de actividad y procesos." />} />

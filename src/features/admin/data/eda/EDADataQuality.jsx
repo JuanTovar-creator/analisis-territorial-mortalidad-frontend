@@ -1,5 +1,6 @@
 import { AlertCircle, CheckCircle2, OctagonX } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function EDADataQuality({ quality }) {
@@ -13,9 +14,7 @@ export default function EDADataQuality({ quality }) {
             <CardTitle>Calidad de datos</CardTitle>
             <CardDescription className="mt-1">Valores faltantes, duplicados y completitud general (datos sintéticos).</CardDescription>
           </div>
-          <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-            Simulación de demostración
-          </Badge>
+          <DemoBadge>Simulación de demostración</DemoBadge>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">

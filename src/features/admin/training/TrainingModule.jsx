@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Activity, BarChart3, History, Settings } from 'lucide-react'
 import { DemoNotice } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
+import { TabNavigation } from '@/components/dashboard/TabNavigation'
 import TrainingConfig from './config/TrainingConfig'
 import TrainingExecution from './execution/TrainingExecution'
 import TrainingResults from './results/TrainingResults'
@@ -75,28 +76,7 @@ export default function TrainingModule() {
       />
       <DemoNotice />
 
-      {/* Tab navigation */}
-      <nav className="flex gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1" aria-label="Secciones del módulo">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          const isActive = activeTab === tab.id
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                isActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-slate-50 hover:text-slate-700'
-              }`}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <Icon size={16} aria-hidden="true" />
-              <span className="hidden sm:inline">{tab.label}</span>
-            </button>
-          )
-        })}
-      </nav>
+      <TabNavigation tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {/* Tab content */}
       {activeTab === 'config' && (

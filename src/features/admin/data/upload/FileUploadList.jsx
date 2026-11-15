@@ -1,5 +1,6 @@
 import { X, CheckCircle2, AlertCircle, FileSpreadsheet } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -24,9 +25,7 @@ export default function FileUploadList({ files, onRemove }) {
         <p className="text-sm font-medium text-slate-700">
           Archivos cargados ({files.length})
         </p>
-        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-          Operación real del navegador
-        </Badge>
+        <DemoBadge variant="real">Operación real del navegador</DemoBadge>
       </div>
       <div className="flex flex-col gap-2">
         {files.map((file, index) => (

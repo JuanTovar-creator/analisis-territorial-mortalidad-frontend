@@ -5,208 +5,237 @@ sessionId: session-261115-012645-nf2a
 # Requirements
 
 ### Overview
-Implementación del módulo **Entrenamiento de modelos** en el panel administrativo. Permite configurar, ejecutar (simulado), visualizar resultados sintéticos y consultar un historial breve de entrenamientos. Todo el contenido es de demostración y se marca como tal.
+Implementación del módulo **Evaluación y publicación de modelos** en el panel administrativo. Permite evaluar modelos entrenados (con métricas sintéticas), comparar modelos, seleccionar un candidato y simular su publicación. Todo el contenido es de demostración y se marca como tal.
 
 ### Scope
 
 **In Scope:**
-- Configuración del entrenamiento: selección de dataset de demostración, modelo (Regresión Logística / Árbol de Decisión), distribución fija 70/15/15 y parámetros básicos.
-- Ejecución simulada con estados: pendiente, ejecutando, completado, error, y barra de progreso.
-- Resultados preliminares con métricas sintéticas de clasificación en tarjetas, gráficos Recharts y matriz de confusión.
-- Historial breve de ejecuciones simuladas recientes dentro del módulo.
+- Evaluación de modelos: visualización de métricas (Accuracy, Precision, Recall, F1-score, ROC-AUC), matrices de confusión y gráficos comparativos para Regresión Logística y Árbol de Decisión.
+- Comparación y selección: comparar ambos modelos con las mismas métricas y el mismo conjunto de prueba; permitir seleccionar un modelo candidato para publicación sin declarar uno como superior.
+- Publicación simulada: interfaz de revisión del modelo seleccionado con nombre, versión demo, dataset, fecha y métricas; simulación de publicación con estados (pendiente, publicando, publicado, error); visualización del modelo publicado en la sesión.
+- Historial de publicaciones: registros ficticios de publicaciones anteriores; diferenciación entre registros precargados y publicaciones de sesión; historial en estado local sin persistencia.
+- Reutilización de componentes del módulo Entrenamiento (MetricsCards, MetricsChart, ModelComparisonChart, ConfusionMatrix).
 - Datos de demo separados de la lógica visual (API-ready).
-- Integración en la ruta `/admin/training` sin alterar otras rutas.
+- Integración en la ruta `/admin/evaluation` sin alterar otras rutas.
 
 **Out of Scope:**
-- Backend real, algoritmos de entrenamiento, o modelos reales.
-- Evaluación detallada y publicación de modelos (módulo independiente).
+- Backend real, entrenamiento real, predicciones reales o llamadas a endpoints.
+- Publicaciones reales o almacenamiento en servidor.
 - Historial general del sistema (módulo independiente).
 - Commits, push o merges automáticos.
-- Semilla aleatoria ni estratificación (se definirán con el equipo de backend).
-- Parámetros adicionales como C, max_iter o solver.
+- Evaluación automatizada que declare un modelo como superior.
 
 ### Functional Requirements
-1. **Configuración:** El usuario selecciona dataset, tipo de modelo y parámetros (learning_rate + regularization para Regresión Logística; max_depth + min_samples_split para Árbol de Decisión). La distribución 70/15/15 se muestra fija sin controles editables.
-2. **Ejecución:** Al iniciar, se simula un entrenamiento con progreso animado (~8-12 seg). Se muestran estados y mensajes claros de que es una simulación. No se permiten ejecuciones simultáneas. Al terminar, se puede iniciar otra.
-3. **Resultados:** Tras completar, se muestran métricas sintéticas (Accuracy, Precision, Recall, F1-score, ROC-AUC) en tarjetas y gráficos, más una matriz de confusión (TP, TN, FP, FN) con la clase positiva identificada. Las métricas son coherentes con la matriz. ROC-AUC proviene de datos sintéticos de puntuaciones, no de la matriz. Se puede consultar resultados de ambos modelos sin presentar uno como superior.
-4. **Historial:** Lista de las últimas ejecuciones simuladas con fecha, modelo, dataset, distribución 70/15/15, estado y métrica principal. Se diferencian las ejecuciones ficticias precargadas de las simulaciones de la sesión actual.
+1. **Evaluación:** El usuario visualiza los modelos disponibles (Regresión Logística y Árbol de Decisión) con sus métricas, matrices de confusión y gráficos comparativos. Las métricas son sintéticas y están marcadas como tales. Se aclara que representan una demostración de evaluación final sobre el 15% de prueba, respetando la distribución 70/15/15, sin afirmar que se ejecutó una evaluación real. La interfaz está preparada para recibir resultados reales de la API.
+2. **Comparación y selección:** El usuario compara ambos modelos lado a lado con las mismas métricas y el mismo conjunto de prueba. Puede seleccionar un modelo candidato para publicación. No se declara automáticamente un modelo como superior. Las métricas reflejan una demostración de evaluación final sobre el 15% de prueba.
+3. **Publicación:** El usuario revisa el modelo seleccionado (nombre, versión demo, dataset, fecha, métricas) antes de publicarlo. Al iniciar la publicación simulada, se muestran estados: pendiente → publicando → publicado / error. Se visualiza cuál es el modelo publicado actualmente en la sesión. No se realizan publicaciones reales. Solo un modelo puede estar publicado como activo en la sesión. Si se publica otro modelo o versión, reemplaza al anterior como activo, conservando el registro de ambas publicaciones en el historial. Se evita publicar repetidamente el mismo modelo y versión si ya están activos en la sesión, pero se permite publicar una versión diferente.
+4. **Historial de publicaciones:** El usuario consulta registros ficticios de publicaciones anteriores. Se diferencian los registros precargados de las publicaciones simuladas durante la sesión. El historial se mantiene en estado local.
 
 ### Non-Functional Requirements
 - Diseño responsive (mobile-first con Tailwind).
 - Limpieza correcta de timers y efectos en desmontaje.
 - Componentes que reciben datos por props (API-ready).
+- Reutilización de componentes del módulo Entrenamiento para métricas y gráficos.
+- Separación de datos demo de componentes visuales.
+- No duplicar innecesariamente la lógica de métricas.
 - Reutilización de componentes shadcn/ui existentes.
-- Valores predeterminados razonables y validaciones básicas en parámetros.
 
 # Technical Design
 
 ### Current Implementation
-- **Rutas:** `App.jsx` define `/admin/training` con un `ModulePlaceholder`. Se reemplazará por un `TrainingModule` lazy-loaded.
-- **Navegación:** `navigation.js` ya incluye "Entrenamiento" en el menú admin con ícono `Activity`.
-- **Patrón del módulo Datos:** `DataModule.jsx` usa tabs, `PageHeader`, `DemoNotice`, datos de demo en `data-demo.js`, y sub-componentes en carpetas (`upload/`, `eda/`, `processing/`, `dataset/`).
-- **Simulación:** `ProcessingPipeline.jsx` demuestra timers, `useRef` para cleanup, estados de progreso y animación con `setInterval`/`setTimeout`.
-- **Gráficos:** `EDAChart.jsx` usa Recharts (`BarChart`, `ResponsiveContainer`, `Tooltip`) dentro de `Card`.
-- **UI:** Componentes shadcn/ui disponibles: `Card`, `Badge`, `Button`, `Select`, `Field`, `Alert`, `Skeleton`.
+- **Rutas:** `App.jsx` define `/admin/evaluation` con un `ModulePlaceholder`. Se reemplazará por un `EvaluationModule` lazy-loaded.
+- **Navegación:** `navigation.js` ya incluye "Evaluación" en el menú admin con ícono `FileBarChart`.
+- **Módulo Entrenamiento (reutilizable):** `src/features/admin/training/` contiene:
+  - `results/MetricsCards.jsx` — tarjetas de métricas (recibe `metrics` por props).
+  - `results/MetricsChart.jsx` — gráfico de barras de métricas (recibe `metrics` por props).
+  - `results/ModelComparisonChart.jsx` — gráfico de comparación entre modelos (lee directamente de `training-demo.js`).
+  - `results/ConfusionMatrix.jsx` — matriz 2x2 visual (recibe `confusionMatrix` y `positiveClass` por props).
+  - `demo/training-demo.js` — `metricResults`, `modelTypes`, `demoDatasets`.
+- **Patrón de módulos:** `DataModule.jsx` y `TrainingModule.jsx` usan tabs, `PageHeader`, `DemoNotice`, datos de demo en `demo/*.js`, y sub-componentes en carpetas.
+- **Simulación:** `TrainingExecution.jsx` usa `setInterval`/`setTimeout`, `useRef` para cleanup, estados de progreso.
+- **Historial:** `TrainingHistory.jsx` usa tabla con badges diferenciados (preloaded/session).
+- **UI:** Componentes shadcn/ui: `Card`, `Badge`, `Button`, `Select`, `Field`, `Alert`, `Skeleton`.
 
 ### Key Decisions
-- **Tabs vs secciones verticales:** Se usarán tabs (como `DataModule`) para organizar: Configuración, Ejecución, Resultados, Historial. Esto mantiene consistencia con el módulo Datos.
-- **Datos de demo separados:** Un archivo `demo/training-demo.js` contendrá datasets, modelos, parámetros, métricas, matriz de confusión y historial ficticio. Los componentes reciben todo por props.
-- **Simulación de entrenamiento:** Similar a `ProcessingPipeline.jsx`, se usarán `setInterval` para progreso y `setTimeout` para completar, con cleanup en `useEffect`. No se permiten ejecuciones simultáneas.
-- **Distribución fija 70/15/15:** Se muestra visualmente (entrenamiento 70%, validación 15%, prueba 15%) sin controles editables. Siempre suma 100%.
-- **Matriz de confusión:** Componente visual con TP, TN, FP, FN y clase positiva identificada. Las métricas (Accuracy, Precision, Recall, F1) son coherentes con los valores de la matriz. ROC-AUC proviene de datos sintéticos de puntuaciones separados.
-- **Historial diferenciado:** Las ejecuciones precargadas se marcan como "Datos precargados" y las de la sesión actual como "Simulación de sesión", con badges distintos.
-- **Gráficos de resultados:** Recharts con `BarChart` para comparar métricas y `BarChart` agrupado para comparar modelos.
+- **Tabs para organizar el módulo:** Se usarán 4 tabs (Evaluación, Comparación, Publicación, Historial) siguiendo el patrón de `DataModule` y `TrainingModule`.
+- **Reutilización de componentes de métricas:** Los componentes `MetricsCards`, `MetricsChart`, `ModelComparisonChart` y `ConfusionMatrix` del módulo Entrenamiento se importarán directamente. No se duplicarán.
+- **ModelComparisonChart necesita refactorización leve:** Actualmente lee directamente de `training-demo.js`. Se mantendrá así para evitar cambios en el módulo Entrenamiento, pero se creará una versión que reciba datos por props para el módulo Evaluación si se necesita personalización. En este caso, se reutilizará directamente ya que los datos son los mismos.
+- **Datos de demo compartidos:** El archivo `demo/training-demo.js` ya contiene `metricResults`, `modelTypes` y `demoDatasets`. Se reutilizarán directamente. Se creará `demo/evaluation-demo.js` solo para datos exclusivos de evaluación (historial de publicaciones, modelo publicado actual).
+- **Simulación de publicación:** Similar a `TrainingExecution.jsx`, se usarán `setTimeout` para simular el proceso de publicación (~5-8 seg), con cleanup en `useEffect`. Estados: pendiente → publicando → publicado / error.
+- **Historial de publicaciones:** Patrón idéntico a `TrainingHistory.jsx` con badges diferenciados (preloaded/session) y tabla de registros.
+- **Selección de modelo candidato:** Estado local en `EvaluationModule.jsx` que almacena el modelo seleccionado. Se pasa a la tab de Publicación.
+- **Modelo publicado en sesión:** Estado local que almacena el modelo publicado actualmente. Solo un modelo puede estar activo. Si se publica otro, reemplaza al anterior como activo, pero ambos quedan en el historial. Se visualiza en la tab de Publicación con badge "Publicado en esta sesión".
+- **Prevención de duplicados:** Antes de publicar, se verifica si el mismo modelo y versión ya están activos. Si es así, se bloquea la publicación y se muestra un mensaje. Se permite publicar una versión diferente del mismo modelo.
 
 ### Proposed Changes
 
-**Nuevo módulo:** `src/features/admin/training/`
+**Nuevo módulo:** `src/features/admin/evaluation/`
 
 **Archivos nuevos:**
-- `TrainingModule.jsx` — contenedor principal con tabs, `PageHeader` y `DemoNotice`.
-- `demo/training-demo.js` — datos ficticios (datasets, modelos, parámetros, métricas, matriz de confusión, historial).
-- `config/TrainingConfig.jsx` — formulario de configuración con selects y campos de parámetros.
-- `execution/TrainingExecution.jsx` — simulación de entrenamiento con estados y progreso.
-- `results/TrainingResults.jsx` — tarjetas y gráficos de métricas sintéticas.
-- `results/MetricsCards.jsx` — tarjetas de métricas individuales.
-- `results/MetricsChart.jsx` — gráfico de barras de métricas.
-- `results/ModelComparisonChart.jsx` — gráfico de comparación entre modelos.
-- `results/ConfusionMatrix.jsx` — matriz de confusión visual con TP, TN, FP, FN.
-- `history/TrainingHistory.jsx` — tabla de ejecuciones recientes.
+- `EvaluationModule.jsx` — contenedor principal con tabs, `PageHeader`, `DemoNotice`, estado de modelo seleccionado y modelo publicado.
+- `demo/evaluation-demo.js` — datos ficticios exclusivos de evaluación (historial de publicaciones precargadas, versión demo del modelo).
+- `evaluation/EvaluationView.jsx` — visualización de métricas de ambos modelos usando componentes reutilizados del módulo Entrenamiento.
+- `comparison/ModelComparison.jsx` — comparación lado a lado de ambos modelos con métricas, gráficos y selección de candidato.
+- `publication/ModelPublication.jsx` — revisión del modelo seleccionado, simulación de publicación con estados, y visualización del modelo publicado.
+- `publication/PublicationHistory.jsx` — tabla de publicaciones anteriores con badges diferenciados.
 
-**Archivo modificado:**
-- `src/App.jsx` — reemplazar `ModulePlaceholder` por `TrainingModule` lazy-loaded en `/admin/training`.
+**Archivos modificados:**
+- `src/App.jsx` — reemplazar `ModulePlaceholder` por `EvaluationModule` lazy-loaded en `/admin/evaluation`.
+
+**Archivos reutilizados (sin modificación):**
+- `src/features/admin/training/results/MetricsCards.jsx`
+- `src/features/admin/training/results/MetricsChart.jsx`
+- `src/features/admin/training/results/ModelComparisonChart.jsx`
+- `src/features/admin/training/results/ConfusionMatrix.jsx`
+- `src/features/admin/training/demo/training-demo.js`
 
 ### Data Models / Contracts
 
-**training-demo.js exports:**
+**evaluation-demo.js exports:**
 ```js
-export const demoDatasets = [
-  { id: 'integrated', name: 'Dataset integrado (demo)', records: 12480, variables: 28 },
-  { id: 'municipal', name: 'Dataset municipal (demo)', records: 4500, variables: 15 },
-]
+export const demoVersion = 'v0.1.0-demo'
 
-export const modelTypes = [
-  { id: 'logistic-regression', name: 'Regresión Logística', 
-    params: [
-      { key: 'learning_rate', label: 'Tasa de aprendizaje', default: 0.01, min: 0.001, max: 0.1, step: 0.001 },
-      { key: 'regularization', label: 'Regularización', default: 0.001, min: 0.0001, max: 1.0, step: 0.0001 },
-    ] },
-  { id: 'decision-tree', name: 'Árbol de Decisión', 
-    params: [
-      { key: 'max_depth', label: 'Profundidad máxima', default: 5, min: 1, max: 20, step: 1 },
-      { key: 'min_samples_split', label: 'Mín. muestras para dividir', default: 2, min: 2, max: 100, step: 1 },
-    ] },
-]
-
-export const dataSplit = { train: 70, validation: 15, test: 15 }
-
-export const metricResults = {
-  'logistic-regression': { 
-    accuracy: 0.82, precision: 0.79, recall: 0.76, f1: 0.77, auc: 0.85,
-    confusionMatrix: { tp: 312, tn: 340, fp: 88, fn: 106 },
-    positiveClass: 'Riesgo de mortalidad evitable (sí)',
+export const publicationHistory = [
+  {
+    id: 1,
+    date: '2025-11-10T15:00:00',
+    model: 'logistic-regression',
+    version: 'v0.1.0-demo',
+    dataset: 'integrated',
+    status: 'published',
+    accuracy: 0.82,
+    source: 'preloaded',
   },
-  'decision-tree': { 
-    accuracy: 0.80, precision: 0.77, recall: 0.78, f1: 0.77, auc: 0.83,
-    confusionMatrix: { tp: 318, tn: 332, fp: 96, fn: 98 },
-    positiveClass: 'Riesgo de mortalidad evitable (sí)',
+  {
+    id: 2,
+    date: '2025-11-09T11:30:00',
+    model: 'decision-tree',
+    version: 'v0.0.9-demo',
+    dataset: 'municipal',
+    status: 'published',
+    accuracy: 0.80,
+    source: 'preloaded',
   },
-}
-
-// Ejecuciones precargadas (ficticias) vs sesiones actuales
-export const trainingHistory = [
-  { id: 1, date: '2025-11-10T14:30:00', model: 'logistic-regression', dataset: 'integrated', 
-    split: '70/15/15', status: 'completed', accuracy: 0.82, source: 'preloaded' },
-  { id: 2, date: '2025-11-09T10:15:00', model: 'decision-tree', dataset: 'municipal', 
-    split: '70/15/15', status: 'completed', accuracy: 0.80, source: 'preloaded' },
-  { id: 3, date: '2025-11-08T16:45:00', model: 'logistic-regression', dataset: 'integrated', 
-    split: '70/15/15', status: 'error', accuracy: null, source: 'preloaded' },
+  {
+    id: 3,
+    date: '2025-11-08T17:00:00',
+    model: 'logistic-regression',
+    version: 'v0.0.8-demo',
+    dataset: 'integrated',
+    status: 'error',
+    accuracy: null,
+    source: 'preloaded',
+  },
 ]
+```
+
+**Estado de EvaluationModule.jsx:**
+```js
+const [activeTab, setActiveTab] = useState('evaluation')
+const [selectedModel, setSelectedModel] = useState(null) // modelo candidato para publicación
+const [publishedModel, setPublishedModel] = useState(null) // modelo publicado en la sesión
+const [sessionPublications, setSessionPublications] = useState([]) // historial de sesión
 ```
 
 ### Architecture Diagram
 
 ``` mermaid
 graph LR
-  A[App.jsx /admin/training] --> B[TrainingModule.jsx]
-  B --> C[Tabs: Config / Ejecución / Resultados / Historial]
-  C --> D[TrainingConfig.jsx]
-  C --> E[TrainingExecution.jsx]
-  C --> F[TrainingResults.jsx]
-  C --> G[TrainingHistory.jsx]
-  D --> H[demo/training-demo.js]
+  A[App.jsx /admin/evaluation] --> B[EvaluationModule.jsx]
+  B --> C[Tabs: Evaluación / Comparación / Publicación / Historial]
+  C --> D[EvaluationView.jsx]
+  C --> E[ModelComparison.jsx]
+  C --> F[ModelPublication.jsx]
+  C --> G[PublicationHistory.jsx]
+  D --> H[MetricsCards.jsx training/]
+  D --> I[MetricsChart.jsx training/]
+  D --> J[ConfusionMatrix.jsx training/]
+  E --> K[ModelComparisonChart.jsx training/]
   E --> H
-  F --> I[MetricsCards.jsx]
-  F --> J[MetricsChart.jsx]
-  F --> K[ModelComparisonChart.jsx]
-  F --> L[ConfusionMatrix.jsx]
-  G --> H
-  H --> M[Datos ficticios: datasets, modelos, métricas, matriz de confusión, historial]
+  F --> L[demo/evaluation-demo.js]
+  G --> L
+  H --> M[training-demo.js metricResults]
+  I --> M
+  J --> M
+  K --> M
+  L --> N[Datos ficticios: historial de publicaciones, versión demo]
 ```
 
 ### Risks
-- **Confusión con entrenamiento real:** Se mitigará con `DemoNotice`, badges "Simulación" y textos claros en cada sección.
-- **Timers no limpiados:** Se usará `useRef` + `useEffect` cleanup como en `ProcessingPipeline.jsx`.
+- **Confusión con publicación real:** Se mitigará con `DemoNotice`, badges "Simulación" y textos claros en cada sección.
+- **Timers no limpiados en publicación:** Se usará `useRef` + `useEffect` cleanup como en `TrainingExecution.jsx`.
+- **Duplicación de componentes de métricas:** Se evitará importando directamente los componentes del módulo Entrenamiento.
+- **ModelComparisonChart acoplado a training-demo.js:** Se aceptará este acoplamiento ya que los datos son los mismos y evita cambios en el módulo Entrenamiento.
 - **Resultados que parezcan oficiales:** Las métricas se marcarán como "Datos sintéticos de demostración" y no se presentará un modelo como superior.
 
 # Delivery Steps
 
 ### ✓ Step 1: Crear estructura del módulo y datos de demo
-Se crea la carpeta `src/features/admin/training/` con el archivo de datos ficticios y el componente principal con tabs.
-- Crear `demo/training-demo.js` con datasets, modelos con parámetros detallados (learning_rate, regularization, max_depth, min_samples_split), distribución 70/15/15, métricas con matriz de confusión coherente, y historial ficticio con campo `source` (preloaded/session).
-- Crear `TrainingModule.jsx` con `PageHeader`, `DemoNotice`, navegación por tabs (Configuración, Ejecución, Resultados, Historial) siguiendo el patrón de `DataModule.jsx`.
-- Actualizar `App.jsx`: importar lazy `TrainingModule` y reemplazar `ModulePlaceholder` en `/admin/training`.
-- Verificar que la ruta `/admin/training` muestre el módulo con tabs vacíos.
+Se crea la carpeta `src/features/admin/evaluation/` con el archivo de datos ficticios y el componente principal con tabs.
+- Crear `demo/evaluation-demo.js` con `demoVersion` y `publicationHistory` (registros precargados ficticios con campo `source: 'preloaded'`).
+- Crear `EvaluationModule.jsx` con `PageHeader`, `DemoNotice`, navegación por tabs (Evaluación, Comparación, Publicación, Historial) siguiendo el patrón de `TrainingModule.jsx`.
+- Estado local para `selectedModel` (candidato), `publishedModel` (publicado en sesión) y `sessionPublications` (historial de sesión).
+- Actualizar `App.jsx`: importar lazy `EvaluationModule` y reemplazar `ModulePlaceholder` en `/admin/evaluation`.
+- Verificar que la ruta `/admin/evaluation` muestre el módulo con tabs vacíos.
 
-### ✓ Step 2: Implementar Configuración del entrenamiento
-Formulario de selección de dataset, modelo y parámetros en la tab Configuración.
-- Crear `config/TrainingConfig.jsx` con:
-  - `Select` para dataset (de `demoDatasets`).
-  - `Select` para tipo de modelo (de `modelTypes`).
-  - Visualización fija de distribución 70/15/15 (entrenamiento, validación, prueba) con barras o indicadores visuales. Sin controles editables.
-  - Campos de parámetros dinámicos según modelo: learning_rate + regularization para Regresión Logística; max_depth + min_samples_split para Árbol de Decisión. Cada campo tiene valores predeterminados y validación de rango (min/max/step).
-  - Botón "Iniciar entrenamiento" que cambia a la tab Ejecución.
-- Estado local con `useState` para almacenar la configuración seleccionada y pasarla a la ejecución.
+### ✓ Step 2: Implementar Evaluación de modelos
+Visualización de métricas de ambos modelos usando componentes reutilizados del módulo Entrenamiento.
+- Crear `evaluation/EvaluationView.jsx` con:
+  - Selector de modelo (`Select`) para consultar métricas de Regresión Logística o Árbol de Decisión.
+  - Importar y reutilizar `MetricsCards` del módulo Entrenamiento, pasando `metrics` por props.
+  - Importar y reutilizar `MetricsChart` del módulo Entrenamiento, pasando `metrics` por props.
+  - Importar y reutilizar `ConfusionMatrix` del módulo Entrenamiento, pasando `confusionMatrix` y `positiveClass` por props.
+  - Datos de `metricResults` de `training-demo.js` (sin duplicar).
+  - Badge "Datos sintéticos de demostración" visible.
+  - Texto aclarando que las métricas representan una "demostración de evaluación final sobre el 15% de prueba", respetando la distribución 70/15/15, sin afirmar que se ejecutó una evaluación real.
+  - Texto indicando que la interfaz está preparada para recibir resultados reales de la API.
 
-### ✓ Step 3: Implementar Ejecución simulada con estados y progreso
-Simulación de entrenamiento con estados animados y cleanup de timers.
-- Crear `execution/TrainingExecution.jsx` con:
-  - Estados: pendiente → ejecutando → completado / error.
-  - Barra de progreso animada con `setInterval` (~8-12 seg duración).
-  - Mensajes de estado claros indicando que es una simulación.
-  - `useRef` + `useEffect` para cleanup de timers (patrón de `ProcessingPipeline.jsx`).
+### ✓ Step 3: Implementar Comparación y selección de modelo
+Comparación lado a lado de ambos modelos con selección de candidato.
+- Crear `comparison/ModelComparison.jsx` con:
+  - Importar y reutilizar `ModelComparisonChart` del módulo Entrenamiento (gráfico de barras agrupadas).
+  - Importar y reutilizar `MetricsCards` para mostrar métricas de ambos modelos lado a lado.
+  - Tabla o cards comparativas mostrando diferencias entre métricas de ambos modelos.
+  - Botón "Seleccionar como candidato" para cada modelo.
+  - Al seleccionar, actualizar `selectedModel` en el estado de `EvaluationModule.jsx` y cambiar a la tab Publicación.
+  - No declarar automáticamente un modelo como superior.
+  - Badge "Datos sintéticos" visible.
+  - Texto aclarando que las métricas reflejan una demostración de evaluación final sobre el 15% de prueba, respetando la distribución 70/15/15.
+
+### ✓ Step 4: Implementar Publicación simulada del modelo
+Revisión del modelo seleccionado y simulación de publicación con estados.
+- Crear `publication/ModelPublication.jsx` con:
+  - Vista de revisión del modelo seleccionado: nombre, versión demo (de `evaluation-demo.js`), dataset, fecha, métricas (usando `MetricsCards` reutilizado).
+  - **Selector de versión:** permitir al usuario elegir una versión diferente (ej. `v0.1.0-demo`, `v0.2.0-demo`) para publicar.
+  - **Prevención de duplicados:** antes de iniciar la publicación, verificar si el mismo modelo y versión ya están activos en la sesión (`publishedModel`). Si es así, bloquear el botón y mostrar un mensaje: "Este modelo y versión ya están publicados en la sesión". Se permite publicar una versión diferente.
+  - **Único modelo activo:** solo un modelo puede estar publicado como activo. Si se publica otro modelo o versión, reemplaza al anterior como activo en `publishedModel`, pero ambos quedan registrados en `sessionPublications` con `source: 'session'`.
+  - Estados de publicación: pendiente → publicando → publicado / error.
+  - Simulación con `setTimeout` (~5-8 seg) y `useRef` + `useEffect` cleanup (patrón de `TrainingExecution.jsx`).
+  - Barra de progreso durante la publicación.
   - Badge "Simulación de demostración" visible.
-  - Bloqueo de ejecuciones simultáneas (botón deshabilitado mientras ejecuta).
-  - Al completar, cambiar automáticamente a la tab Resultados.
-  - Recepción de configuración por props para mostrar qué modelo se está "entrenando".
-  - Al finalizar, permitir reiniciar la simulación.
+  - Al completar, actualizar `publishedModel` en el estado del módulo (reemplazando al anterior) y agregar la nueva publicación a `sessionPublications`.
+  - Visualización del modelo publicado actualmente en la sesión con badge "Publicado en esta sesión".
+  - Bloqueo de publicaciones simultáneas.
+  - Permitir reiniciar la publicación.
 
-### ✓ Step 4: Implementar Resultados con métricas, gráficos y matriz de confusión
-Tarjetas, gráficos y matriz de confusión con métricas sintéticas de clasificación.
-- Crear `results/MetricsCards.jsx`: tarjetas de Accuracy, Precision, Recall, F1-score y ROC-AUC usando `Card` personalizado.
-- Crear `results/MetricsChart.jsx`: gráfico de barras con Recharts (`BarChart`) mostrando las 5 métricas del modelo entrenado.
-- Crear `results/ModelComparisonChart.jsx`: gráfico de barras agrupadas comparando ambos modelos (Regresión Logística vs Árbol de Decisión) en las mismas métricas.
-- Crear `results/ConfusionMatrix.jsx`: matriz visual 2x2 con TP, TN, FP, FN, colores diferenciados, y la clase positiva identificada. Los valores son coherentes con Accuracy, Precision, Recall y F1.
-- Crear `results/TrainingResults.jsx`: contenedor que orquesta tarjetas + gráficos + matriz, recibe el modelo seleccionado por props y consulta `metricResults` de demo.
-- Todos los gráficos marcados como "Datos sintéticos de demostración".
-- Permitir consultar resultados de ambos modelos sin presentar uno como superior.
-
-### ✓ Step 5: Implementar Historial breve de ejecuciones
-Lista de ejecuciones simuladas recientes dentro del módulo.
-- Crear `history/TrainingHistory.jsx` con:
-  - Tabla o lista de `Card` mostrando: fecha/hora, modelo, dataset, distribución 70/15/15, estado (completado/error) y métrica principal.
-  - Datos de `trainingHistory` de `training-demo.js`.
-  - Badge "Datos precargados" para ejecuciones ficticias y "Simulación de sesión" para las nuevas.
-  - Al iniciar un entrenamiento, la nueva ejecución se agrega al historial con `source: 'session'` (estado local del módulo).
+### ✓ Step 5: Implementar Historial de publicaciones
+Tabla de publicaciones anteriores con badges diferenciados.
+- Crear `publication/PublicationHistory.jsx` con:
+  - Tabla mostrando: fecha/hora, modelo, versión, dataset, estado (publicado/error) y métrica principal.
+  - Datos de `publicationHistory` de `evaluation-demo.js` (precargados).
+  - Badge "Datos precargados" para registros ficticios y "Publicación de sesión" para las nuevas.
+  - Al publicar un modelo, la nueva publicación se agrega al historial con `source: 'session'`.
   - Texto indicando que no sustituye el módulo de Historial general.
-- Integrar en la tab Historial del `TrainingModule.jsx`.
+  - Patrón visual idéntico a `TrainingHistory.jsx` para consistencia.
+- Integrar en la tab Historial del `EvaluationModule.jsx`.
 
 ### ✓ Step 6: Integración final y verificación
 Conectar todas las tabs, verificar flujo completo y responsive.
-- Verificar el flujo completo: Config → Ejecución → Resultados → Historial.
-- Asegurar que la configuración se pasa correctamente entre tabs (estado en `TrainingModule.jsx`).
+- Verificar el flujo completo: Evaluación → Comparación → Publicación → Historial.
+- Asegurar que `selectedModel` se pasa correctamente de Comparación a Publicación.
+- Verificar que `publishedModel` y `sessionPublications` se actualizan correctamente.
 - Verificar responsive en mobile y desktop.
 - Confirmar que todos los timers se limpian correctamente.
 - Verificar que no se alteran otras rutas ni módulos.
 - Revisar que todos los textos indiquen claramente que es una simulación.
-- Validar coherencia entre matriz de confusión y métricas calculadas.
+- Validar que los componentes de métricas se reutilizan correctamente sin duplicación.

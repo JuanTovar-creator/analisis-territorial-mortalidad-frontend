@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import {
   edaIndicators,
   edaChartData,
@@ -32,9 +33,7 @@ export default function EDAView() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Análisis exploratorio de datos</h2>
-        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-          Simulación de demostración
-        </Badge>
+        <DemoBadge>Simulación de demostración</DemoBadge>
       </div>
 
       <EDAFilters

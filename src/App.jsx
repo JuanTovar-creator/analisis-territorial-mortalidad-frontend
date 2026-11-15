@@ -9,6 +9,7 @@ const AdminDashboard = lazy(() => import('@/features/admin/AdminDashboard'))
 const ClientDashboard = lazy(() => import('@/features/client/ClientDashboard'))
 const DataModule = lazy(() => import('@/features/admin/data/DataModule'))
 const TrainingModule = lazy(() => import('@/features/admin/training/TrainingModule'))
+const EvaluationModule = lazy(() => import('@/features/admin/evaluation/EvaluationModule'))
 const DashboardLoading = () => <p className="py-12 text-center text-sm text-muted-foreground" role="status">Cargando panel…</p>
 
 function ProtectedRoute({ role, children }) {
@@ -32,7 +33,7 @@ function AppRoutes() {
         <Route index element={<Suspense fallback={<DashboardLoading />}><AdminDashboard /></Suspense>} />
         <Route path="data" element={<Suspense fallback={<DashboardLoading />}><DataModule /></Suspense>} />
         <Route path="training" element={<Suspense fallback={<DashboardLoading />}><TrainingModule /></Suspense>} />
-        <Route path="evaluation" element={<ModulePlaceholder title="Evaluación y publicación" description="Evaluación y ciclo de publicación del modelo." />} />
+        <Route path="evaluation" element={<Suspense fallback={<DashboardLoading />}><EvaluationModule /></Suspense>} />
         <Route path="history" element={<ModulePlaceholder title="Historial" description="Registro de actividad y procesos." />} />
         <Route path="account" element={<ModulePlaceholder title="Mi cuenta" description="Configuración de la cuenta de administrador." />} />
       </Route>

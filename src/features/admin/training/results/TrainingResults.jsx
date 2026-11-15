@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { modelTypes, metricResults } from '../demo/training-demo'
@@ -29,9 +30,7 @@ export default function TrainingResults({ completedModel }) {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Resultados del entrenamiento</h2>
-        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-          Datos sintéticos de demostración
-        </Badge>
+        <DemoBadge>Datos sintéticos de demostración</DemoBadge>
       </div>
 
       {/* Model selector */}

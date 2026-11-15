@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Database, GitBranch, Play, Settings2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldContent, FieldError, FieldLabel } from '@/components/ui/field'
@@ -76,9 +77,7 @@ export default function TrainingConfig({ onStartExecution }) {
                 Selecciona el dataset, el tipo de modelo y ajusta los parámetros antes de iniciar la simulación.
               </CardDescription>
             </div>
-            <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-700">
-              Simulación de demostración
-            </Badge>
+            <DemoBadge>Simulación de demostración</DemoBadge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-8">

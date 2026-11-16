@@ -1,20 +1,64 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BarChart3, Info } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { DemoBadge } from '@/components/dashboard/DemoBadge'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldContent, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import MetricsCards from '@/features/admin/training/results/MetricsCards'
 import MetricsChart from '@/features/admin/training/results/MetricsChart'
 import ConfusionMatrix from '@/features/admin/training/results/ConfusionMatrix'
-import { metricResults, modelTypes } from '@/features/admin/training/demo/training-demo'
+import { modelTypes } from '@/features/admin/training/demo/training-demo'
+import { getEvaluationMetrics } from '@/services/evaluation'
 
 export default function EvaluationView() {
   const [model, setModel] = useState('logistic-regression')
+  const [results, setResults] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getEvaluationMetrics(model)
+      .then(data => {
+        if (!cancelled) setResults(data)
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar las métricas de evaluación')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [model])
 
   const selectedModelDef = modelTypes.find(m => m.id === model)
-  const results = metricResults[model]
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="loading" title="Cargando evaluación" description="Obteniendo las métricas del modelo..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="error" title="Error al cargar evaluación" description={error} />
+      </div>
+    )
+  }
+
+  if (!results) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel title="Sin métricas de evaluación" description="No hay resultados de evaluación disponibles. El backend debe completar la evaluación primero." />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,22 +117,18 @@ export default function EvaluationView() {
           </div>
 
           {/* Metrics cards */}
-          {results && (
-            <div>
-              <h3 className="text-sm font-semibold text-slate-800 mb-3">
-                Métricas — {selectedModelDef?.name}
-              </h3>
-              <MetricsCards metrics={results} />
-            </div>
-          )}
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800 mb-3">
+              Métricas — {selectedModelDef?.name}
+            </h3>
+            <MetricsCards metrics={results} />
+          </div>
 
           {/* Metrics chart */}
-          {results && (
-            <MetricsChart metrics={results} />
-          )}
+          <MetricsChart metrics={results} />
 
           {/* Confusion matrix */}
-          {results && (
+          {results.confusionMatrix && (
             <ConfusionMatrix
               confusionMatrix={results.confusionMatrix}
               positiveClass={results.positiveClass}

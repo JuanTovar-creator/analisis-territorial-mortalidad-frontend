@@ -1,10 +1,13 @@
+import { useEffect, useState } from 'react'
 import { CheckCircle2, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { DemoBadge } from '@/components/dashboard/DemoBadge'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import MetricsCards from '@/features/admin/training/results/MetricsCards'
 import ModelComparisonChart from '@/features/admin/training/results/ModelComparisonChart'
-import { metricResults, modelTypes } from '@/features/admin/training/demo/training-demo'
+import { modelTypes } from '@/features/admin/training/demo/training-demo'
+import { getEvaluationMetrics } from '@/services/evaluation'
 
 const metricKeys = ['accuracy', 'precision', 'recall', 'f1', 'auc']
 const metricLabels = {
@@ -15,14 +18,64 @@ const metricLabels = {
   auc: 'ROC-AUC',
 }
 
-// En demo, el modelo indicado es un valor fijo. En producción, el backend lo determina.
-const recommendedModelId = 'logistic-regression'
-
 export default function ModelComparison() {
-  const lr = metricResults['logistic-regression']
-  const dt = metricResults['decision-tree']
+  const [lr, setLr] = useState(null)
+  const [dt, setDt] = useState(null)
+  const [recommendedModelId, setRecommendedModelId] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    Promise.all([
+      getEvaluationMetrics('logistic-regression'),
+      getEvaluationMetrics('decision-tree'),
+    ])
+      .then(([lrData, dtData]) => {
+        if (cancelled) return
+        setLr(lrData)
+        setDt(dtData)
+        // En producción, el backend indica cuál es el modelo recomendado
+        // En demo, se usa un valor fijo
+        setRecommendedModelId('logistic-regression')
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar la comparación de modelos')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
   const lrDef = modelTypes.find(m => m.id === 'logistic-regression')
   const dtDef = modelTypes.find(m => m.id === 'decision-tree')
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="loading" title="Cargando comparación" description="Obteniendo las métricas de ambos modelos..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="error" title="Error al cargar comparación" description={error} />
+      </div>
+    )
+  }
+
+  if (!lr || !dt) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel title="Sin datos de comparación" description="No hay métricas de evaluación disponibles. El backend debe completar la evaluación de ambos modelos primero." />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">

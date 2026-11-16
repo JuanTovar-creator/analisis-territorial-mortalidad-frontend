@@ -1,20 +1,10 @@
-import { AlertCircle, CheckCircle2, Clock, Package } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, Package } from 'lucide-react'
 import { DemoBadge } from '@/components/dashboard/DemoBadge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { modelTypes, demoDatasets } from '@/features/admin/training/demo/training-demo'
-import { metricResults } from '@/features/admin/training/demo/training-demo'
-
-// Modelo publicado actualmente (datos de demo)
-// En producción, este dato se recibe del backend.
-const publishedModel = {
-  id: 1,
-  model: 'logistic-regression',
-  version: 'v0.1.0-demo',
-  dataset: 'integrated',
-  publishedAt: '2025-11-10T15:00:00',
-  status: 'published',
-}
+import { getPublishedModel } from '@/services/evaluation'
 
 function formatDateTime(isoString) {
   const date = new Date(isoString)
@@ -33,23 +23,63 @@ function getDatasetName(id) {
 }
 
 export default function PublishedModelView() {
-  const modelName = getModelName(publishedModel.model)
-  const datasetName = getDatasetName(publishedModel.dataset)
-  const { date, time } = formatDateTime(publishedModel.publishedAt)
-  const metrics = metricResults[publishedModel.model]
+  const [publishedModel, setPublishedModel] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getPublishedModel()
+      .then(data => {
+        if (!cancelled) setPublishedModel(data)
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar el modelo publicado')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="loading" title="Cargando modelo publicado" description="Obteniendo la información del modelo activo..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="error" title="Error al cargar modelo publicado" description={error} />
+      </div>
+    )
+  }
 
   if (!publishedModel) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
           <Package size={24} className="mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm font-medium text-slate-700">
             No hay un modelo publicado actualmente.
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            El backend debe publicar un modelo antes de que pueda visualizarse aquí.
           </p>
         </CardContent>
       </Card>
     )
   }
+
+  const modelName = getModelName(publishedModel.model)
+  const datasetName = getDatasetName(publishedModel.dataset)
+  const { date, time } = formatDateTime(publishedModel.publishedAt)
+  const metrics = publishedModel.metrics
 
   return (
     <div className="flex flex-col gap-6">
@@ -73,11 +103,9 @@ export default function PublishedModelView() {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <Card className="inline-flex items-center gap-2 rounded-xl border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700">
-                <CheckCircle2 size={16} aria-hidden="true" />
-                Modelo activo
-              </Card>
+            <div className="inline-flex items-center gap-2 rounded-xl border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700">
+              <CheckCircle2 size={16} aria-hidden="true" />
+              Modelo activo
             </div>
           </div>
         </CardHeader>

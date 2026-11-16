@@ -10,6 +10,7 @@ const ClientDashboard = lazy(() => import('@/features/client/ClientDashboard'))
 const DataModule = lazy(() => import('@/features/admin/data/DataModule'))
 const TrainingModule = lazy(() => import('@/features/admin/training/TrainingModule'))
 const EvaluationModule = lazy(() => import('@/features/admin/evaluation/EvaluationModule'))
+const MunicipalitiesModule = lazy(() => import('@/features/client/municipalities/MunicipalitiesModule'))
 const DashboardLoading = () => <p className="py-12 text-center text-sm text-muted-foreground" role="status">Cargando panel…</p>
 
 function ProtectedRoute({ role, children }) {
@@ -39,7 +40,7 @@ function AppRoutes() {
       </Route>
       <Route path="/client" element={<ProtectedRoute role="client"><AppShell role="client" /></ProtectedRoute>}>
         <Route index element={<Suspense fallback={<DashboardLoading />}><ClientDashboard /></Suspense>} />
-        <Route path="municipalities" element={<ModulePlaceholder title="Municipios" description="Consulta territorial pendiente de cartografía y datos validados." />} />
+        <Route path="municipalities" element={<Suspense fallback={<DashboardLoading />}><MunicipalitiesModule /></Suspense>} />
         <Route path="comparison" element={<ModulePlaceholder title="Comparación" description="Comparación territorial pendiente de fuentes y metodología aprobadas." />} />
         <Route path="reports" element={<ModulePlaceholder title="Informes" description="Informes territoriales disponibles en una etapa posterior." />} />
         <Route path="methodology" element={<ModulePlaceholder title="Metodología" description="Documentación de la metodología aprobada." />} />

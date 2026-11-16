@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useState } from 'react'
 import { DemoBadge } from '@/components/dashboard/DemoBadge'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { modelTypes, metricResults } from '../demo/training-demo'
+import { modelTypes } from '../demo/training-demo'
+import { getTrainingResults } from '@/services/training'
 import MetricsCards from './MetricsCards'
 import MetricsChart from './MetricsChart'
 import ModelComparisonChart from './ModelComparisonChart'
@@ -11,8 +12,52 @@ import ConfusionMatrix from './ConfusionMatrix'
 
 export default function TrainingResults() {
   const [selectedModel, setSelectedModel] = useState('logistic-regression')
-  const metrics = metricResults[selectedModel]
+  const [metrics, setMetrics] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getTrainingResults(selectedModel)
+      .then(data => {
+        if (!cancelled) setMetrics(data)
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar los resultados')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [selectedModel])
+
   const modelName = modelTypes.find(m => m.id === selectedModel)?.name || ''
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="loading" title="Cargando resultados" description="Obteniendo las métricas del entrenamiento..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel state="error" title="Error al cargar resultados" description={error} />
+      </div>
+    )
+  }
+
+  if (!metrics) {
+    return (
+      <div className="flex flex-col gap-6">
+        <StatePanel title="Sin resultados" description="No hay resultados de entrenamiento disponibles. El backend debe completar un entrenamiento primero." />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,10 +102,12 @@ export default function TrainingResults() {
       <MetricsChart metrics={metrics} />
 
       {/* Confusion matrix */}
-      <ConfusionMatrix
-        confusionMatrix={metrics.confusionMatrix}
-        positiveClass={metrics.positiveClass}
-      />
+      {metrics.confusionMatrix && (
+        <ConfusionMatrix
+          confusionMatrix={metrics.confusionMatrix}
+          positiveClass={metrics.positiveClass}
+        />
+      )}
 
       {/* Model comparison */}
       <ModelComparisonChart />

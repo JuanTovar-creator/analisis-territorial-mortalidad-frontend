@@ -13,6 +13,7 @@ const EvaluationModule = lazy(() => import('@/features/admin/evaluation/Evaluati
 const MunicipalitiesModule = lazy(() => import('@/features/client/municipalities/MunicipalitiesModule'))
 const ComparisonModule = lazy(() => import('@/features/client/comparison/ComparisonModule'))
 const ReportsModule = lazy(() => import('@/features/client/reports/ReportsModule'))
+const MethodologyModule = lazy(() => import('@/features/client/methodology/MethodologyModule'))
 const DashboardLoading = () => <p className="py-12 text-center text-sm text-muted-foreground" role="status">Cargando panel…</p>
 
 function ProtectedRoute({ role, children }) {
@@ -45,7 +46,7 @@ function AppRoutes() {
         <Route path="municipalities" element={<Suspense fallback={<DashboardLoading />}><MunicipalitiesModule /></Suspense>} />
         <Route path="comparison" element={<Suspense fallback={<DashboardLoading />}><ComparisonModule /></Suspense>} />
         <Route path="reports" element={<Suspense fallback={<DashboardLoading />}><ReportsModule /></Suspense>} />
-        <Route path="methodology" element={<ModulePlaceholder title="Metodología" description="Documentación de la metodología aprobada." />} />
+        <Route path="methodology" element={<Suspense fallback={<DashboardLoading />}><MethodologyModule /></Suspense>} />
         <Route path="account" element={<ModulePlaceholder title="Mi cuenta" description="Configuración de la cuenta de cliente." />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

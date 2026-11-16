@@ -9,22 +9,10 @@ import MetricsChart from './MetricsChart'
 import ModelComparisonChart from './ModelComparisonChart'
 import ConfusionMatrix from './ConfusionMatrix'
 
-export default function TrainingResults({ completedModel }) {
-  const [selectedModel, setSelectedModel] = useState(completedModel || 'logistic-regression')
+export default function TrainingResults() {
+  const [selectedModel, setSelectedModel] = useState('logistic-regression')
   const metrics = metricResults[selectedModel]
   const modelName = modelTypes.find(m => m.id === selectedModel)?.name || ''
-
-  if (!metrics) {
-    return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            No hay resultados disponibles. Inicia una simulación de entrenamiento primero.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
 
   return (
     <div className="flex flex-col gap-6">

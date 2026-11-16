@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { BarChart3, FileBarChart, History, Scale } from 'lucide-react'
-import { DemoNotice } from '@/components/dashboard/DashboardPrimitives'
+import { DemoNotice, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { TabNavigation } from '@/components/dashboard/TabNavigation'
 import EvaluationView from './evaluation/EvaluationView'
 import ModelComparison from './comparison/ModelComparison'
-import ModelPublication from './publication/ModelPublication'
+import PublishedModelView from './publication/PublishedModelView'
 import PublicationHistory from './publication/PublicationHistory'
-import { publicationHistory as preloadedHistory } from './demo/evaluation-demo'
+import { getPublicationHistory } from '@/services/evaluation'
 
 const tabs = [
   { id: 'evaluation', label: 'Evaluación', icon: BarChart3 },
@@ -18,49 +18,33 @@ const tabs = [
 
 export default function EvaluationModule() {
   const [activeTab, setActiveTab] = useState('evaluation')
-  const [selectedModel, setSelectedModel] = useState(null) // modelo candidato para publicación
-  const [publishedModel, setPublishedModel] = useState(null) // modelo publicado en la sesión
-  const [sessionPublications, setSessionPublications] = useState([]) // historial de sesión
+  const [history, setHistory] = useState([])
+  const [historyLoading, setHistoryLoading] = useState(true)
+  const [historyError, setHistoryError] = useState(null)
 
-  const handleSelectModel = (modelId) => {
-    setSelectedModel(modelId)
-    setActiveTab('publication')
-  }
-
-  const handlePublicationComplete = (publication) => {
-    // Reemplazar el modelo publicado activo
-    setPublishedModel(publication)
-    // Agregar al historial de sesión
-    setSessionPublications(prev => [publication, ...prev])
-  }
-
-  const handlePublicationError = () => {
-    // Agregar al historial de sesión como error
-    const newEntry = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      model: selectedModel?.model || 'logistic-regression',
-      version: selectedModel?.version || 'v0.1.0-demo',
-      dataset: selectedModel?.dataset || 'integrated',
-      status: 'error',
-      accuracy: null,
-      source: 'session',
-    }
-    setSessionPublications(prev => [newEntry, ...prev])
-  }
-
-  const handleResetPublication = () => {
-    setSelectedModel(null)
-  }
-
-  const allHistory = [...sessionPublications, ...preloadedHistory]
+  useEffect(() => {
+    let cancelled = false
+    setHistoryLoading(true)
+    setHistoryError(null)
+    getPublicationHistory()
+      .then(data => {
+        if (!cancelled) setHistory(data)
+      })
+      .catch(err => {
+        if (!cancelled) setHistoryError(err.message || 'Error al cargar el historial')
+      })
+      .finally(() => {
+        if (!cancelled) setHistoryLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="EVALUACIÓN"
         title="Evaluación y publicación de modelos"
-        description="Evalúa modelos entrenados, compara resultados y simula la publicación de un candidato."
+        description="Evalúa modelos entrenados, compara resultados y visualiza el modelo publicado."
       />
       <DemoNotice />
 
@@ -72,21 +56,21 @@ export default function EvaluationModule() {
       )}
 
       {activeTab === 'comparison' && (
-        <ModelComparison onSelectModel={handleSelectModel} />
+        <ModelComparison />
       )}
 
       {activeTab === 'publication' && (
-        <ModelPublication
-          selectedModel={selectedModel}
-          publishedModel={publishedModel}
-          onComplete={handlePublicationComplete}
-          onError={handlePublicationError}
-          onReset={handleResetPublication}
-        />
+        <PublishedModelView />
       )}
 
       {activeTab === 'history' && (
-        <PublicationHistory history={allHistory} />
+        historyLoading && (
+          <StatePanel state="loading" title="Cargando historial" description="Obteniendo el historial de publicaciones..." />
+        ) ||
+        historyError && (
+          <StatePanel state="error" title="Error al cargar el historial" description={historyError} />
+        ) ||
+        <PublicationHistory history={history} />
       )}
     </div>
   )

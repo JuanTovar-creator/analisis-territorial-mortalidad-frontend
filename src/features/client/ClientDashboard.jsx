@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartNoAxesColumn, Flag, MapPinned } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,7 +6,7 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DemoNotice, MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
-import { clientDemoMetrics, clientDemoPeriods } from './demo/client-dashboard'
+import { getClientOverview } from '@/services/dashboard'
 
 const periodOptions = [
   { label: 'Todos los periodos de demo', value: 'all' },
@@ -22,12 +22,53 @@ const scopeOptions = [
 export default function ClientDashboard() {
   const [period, setPeriod] = useState('all')
   const [scope, setScope] = useState('all')
+  const [overview, setOverview] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getClientOverview()
+      .then(data => {
+        if (!cancelled) setOverview(data)
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar los indicadores')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  const periods = overview?.periods || []
+  const metrics = overview?.metrics || []
 
   const chartData = useMemo(() => {
-    const selectedPeriods = period === 'first' ? clientDemoPeriods.slice(0, 3) : period === 'second' ? clientDemoPeriods.slice(3) : clientDemoPeriods
+    const selectedPeriods = period === 'first' ? periods.slice(0, 3) : period === 'second' ? periods.slice(3) : periods
     if (scope === 'all') return selectedPeriods
     return selectedPeriods.map(({ month, [scope]: records }) => ({ month, records }))
-  }, [period, scope])
+  }, [period, scope, periods])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader eyebrow="ANÁLISIS TERRITORIAL" title="Resumen general" description="Cargando indicadores..." />
+        <StatePanel state="loading" title="Cargando panel" description="Obteniendo los indicadores territoriales..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader eyebrow="ANÁLISIS TERRITORIAL" title="Resumen general" description="Error al cargar datos" />
+        <StatePanel state="error" title="Error al cargar el panel" description={error} />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -35,7 +76,7 @@ export default function ClientDashboard() {
       <DemoNotice />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Indicadores disponibles">
-        {clientDemoMetrics.map((metric) => {
+        {metrics.map((metric) => {
           const icon = metric.icon === 'map' ? MapPinned : metric.icon === 'flag' ? Flag : ChartNoAxesColumn
           return <MetricCard key={metric.label} {...metric} icon={icon} />
         })}

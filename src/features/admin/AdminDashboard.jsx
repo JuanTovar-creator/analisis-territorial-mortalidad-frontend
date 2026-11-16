@@ -1,14 +1,54 @@
+import { useEffect, useState } from 'react'
 import { Activity, BrainCircuit, Check, Clock3, Database, ShieldCheck, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { DemoNotice, MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
-import { adminDemoOverview } from './demo/admin-dashboard'
+import { getAdminOverview } from '@/services/dashboard'
 
 const metricIcons = { database: Database, activity: Activity, brain: BrainCircuit, shield: ShieldCheck }
 
 export default function AdminDashboard() {
-  const { metrics, datasets, activity } = adminDemoOverview
+  const [overview, setOverview] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    getAdminOverview()
+      .then(data => {
+        if (!cancelled) setOverview(data)
+      })
+      .catch(err => {
+        if (!cancelled) setError(err.message || 'Error al cargar los indicadores')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader eyebrow="OPERACIÓN" title="Panel principal" description="Cargando indicadores..." />
+        <StatePanel state="loading" title="Cargando panel" description="Obteniendo los indicadores del sistema..." />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader eyebrow="OPERACIÓN" title="Panel principal" description="Error al cargar datos" />
+        <StatePanel state="error" title="Error al cargar el panel" description={error} />
+      </div>
+    )
+  }
+
+  const { metrics, datasets, activity } = overview
 
   return (
     <div className="flex flex-col gap-6">

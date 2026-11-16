@@ -1,7 +1,6 @@
 import { CheckCircle2, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { DemoBadge } from '@/components/dashboard/DemoBadge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import MetricsCards from '@/features/admin/training/results/MetricsCards'
 import ModelComparisonChart from '@/features/admin/training/results/ModelComparisonChart'
@@ -16,15 +15,14 @@ const metricLabels = {
   auc: 'ROC-AUC',
 }
 
-export default function ModelComparison({ onSelectModel }) {
+// En demo, el modelo indicado es un valor fijo. En producción, el backend lo determina.
+const recommendedModelId = 'logistic-regression'
+
+export default function ModelComparison() {
   const lr = metricResults['logistic-regression']
   const dt = metricResults['decision-tree']
   const lrDef = modelTypes.find(m => m.id === 'logistic-regression')
   const dtDef = modelTypes.find(m => m.id === 'decision-tree')
-
-  const handleSelect = (modelId) => {
-    onSelectModel({ model: modelId })
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,7 +50,7 @@ export default function ModelComparison({ onSelectModel }) {
                 Las métricas reflejan una demostración de evaluación final sobre el 15% de prueba, respetando la distribución 70% entrenamiento, 15% validación y 15% prueba. No se ejecutó una evaluación real.
               </p>
               <p className="text-xs text-blue-700">
-                Ningún modelo se declara automáticamente como superior. La selección de candidato es una decisión del usuario.
+                El modelo indicado es determinado por el backend según los criterios definidos. El frontend solo lo visualiza.
               </p>
             </div>
           </div>
@@ -72,14 +70,12 @@ export default function ModelComparison({ onSelectModel }) {
                   <h4 className="text-sm font-semibold text-slate-700">
                     {lrDef?.name}
                   </h4>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSelect('logistic-regression')}
-                    className="gap-1.5 text-xs"
-                  >
-                    <CheckCircle2 size={14} aria-hidden="true" />
-                    Seleccionar como candidato
-                  </Button>
+                  {recommendedModelId === 'logistic-regression' && (
+                    <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 gap-1 flex items-center">
+                      <CheckCircle2 size={12} aria-hidden="true" />
+                      Modelo indicado
+                    </Badge>
+                  )}
                 </div>
                 <MetricsCards metrics={lr} />
               </div>
@@ -89,14 +85,12 @@ export default function ModelComparison({ onSelectModel }) {
                   <h4 className="text-sm font-semibold text-slate-700">
                     {dtDef?.name}
                   </h4>
-                  <Button
-                    size="sm"
-                    onClick={() => handleSelect('decision-tree')}
-                    className="gap-1.5 text-xs"
-                  >
-                    <CheckCircle2 size={14} aria-hidden="true" />
-                    Seleccionar como candidato
-                  </Button>
+                  {recommendedModelId === 'decision-tree' && (
+                    <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700 gap-1 flex items-center">
+                      <CheckCircle2 size={12} aria-hidden="true" />
+                      Modelo indicado
+                    </Badge>
+                  )}
                 </div>
                 <MetricsCards metrics={dt} />
               </div>

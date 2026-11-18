@@ -89,3 +89,23 @@ export async function getEDAStatus() {
 export async function getEDADane() {
   return request('/eda/dane')
 }
+
+/**
+ * Obtiene las estadísticas EDA reales del dataset RIPS.
+ * Siempre llama a la API directamente, sin pasar por IS_DEMO_MODE.
+ *
+ * Respuesta esperada:
+ * {
+ *   dataset: "RIPS",
+ *   generado_en: "...",
+ *   dimensiones: { filas, columnas },
+ *   calidad: { duplicados_exactos, nulos_por_columna, vacios_por_columna, espacios_por_columna },
+ *   numero_atenciones: { minimo, p25, mediana, p75, media, desviacion_estandar, maximo, suma },
+ *   univariado: { tipo_atencion, diagnostico_top10 },
+ *   geografico: { top_departamentos_filas, top_departamentos_atenciones, municipios_distintos, departamentos_distintos },
+ *   cruces: { departamento_x_tipo_atencion_top10 }
+ * }
+ */
+export async function getEDARips() {
+  return request('/eda/rips')
+}

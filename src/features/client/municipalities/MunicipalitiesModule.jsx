@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { MapPinned } from 'lucide-react'
-import { DemoNotice, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { getMunicipalities } from '@/services/municipalities'
 import MunicipalitiesFilters from './MunicipalitiesFilters'
@@ -45,7 +45,10 @@ export default function MunicipalitiesModule() {
 
   const filteredMunicipalities = useMemo(() => {
     return municipalities.filter(m => {
-      const matchesSearch = !search || m.municipio.toLowerCase().includes(search.toLowerCase())
+      const searchLower = search.toLowerCase()
+      const matchesSearch = !search ||
+        m.municipio.toLowerCase().includes(searchLower) ||
+        m.codigo.includes(searchLower)
       const matchesDepartamento = !departamento || m.departamento === departamento
       const matchesRiesgo = !riesgo || m.riesgo === riesgo
       return matchesSearch && matchesDepartamento && matchesRiesgo
@@ -87,9 +90,8 @@ export default function MunicipalitiesModule() {
       <PageHeader
         eyebrow="ANÁLISIS TERRITORIAL"
         title="Municipios"
-        description="Consulta de indicadores y predicciones por municipio."
+        description="Consulta de municipios disponibles en el sistema de predicción."
       />
-      <DemoNotice />
 
       {/* Filters */}
       <MunicipalitiesFilters

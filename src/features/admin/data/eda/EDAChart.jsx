@@ -1,12 +1,12 @@
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function EDAChart({ data }) {
+export default function EDAChart({ data, title, description }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Registros por fuente</CardTitle>
-        <CardDescription className="mt-1">Distribución de registros según la fuente de datos (datos ficticios).</CardDescription>
+        <CardTitle>{title ?? 'Registros por fuente'}</CardTitle>
+        <CardDescription className="mt-1">{description ?? 'Distribución de registros según la fuente de datos (datos ficticios).'}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[260px] w-full">

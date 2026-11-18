@@ -8,7 +8,7 @@ import {
   edaIndicators,
   edaChartData,
   edaSummaryData,
-  edaDataQuality,
+  dataQuality,
   pipelineStages,
   integratedDataset,
 } from '@/features/admin/data/demo/data-demo'
@@ -49,8 +49,43 @@ export async function getEDAMetrics() {
       indicators: edaIndicators,
       chartData: edaChartData,
       summaryData: edaSummaryData,
-      dataQuality: edaDataQuality,
+      dataQuality,
     }
   }
   return request('/data/eda')
+}
+
+/**
+ * Obtiene el estado actual del EDA para DANE y RIPS.
+ * Siempre llama a la API directamente, sin pasar por IS_DEMO_MODE.
+ *
+ * Respuesta esperada:
+ * {
+ *   dane: { disponible, vigente, generado_en, filas, archivo_raw },
+ *   rips: { disponible, vigente, generado_en, filas, archivo_raw }
+ * }
+ */
+export async function getEDAStatus() {
+  return request('/eda/status')
+}
+
+/**
+ * Obtiene las estadísticas EDA reales del dataset DANE.
+ * Siempre llama a la API directamente, sin pasar por IS_DEMO_MODE.
+ *
+ * Respuesta esperada:
+ * {
+ *   dataset: "DANE",
+ *   generado_en: "...",
+ *   dimensiones: { filas, columnas },
+ *   calidad: { duplicados_exactos, nulos_por_columna, vacios_por_columna, ... },
+ *   demografico: { sexo, gru_ed1, gru_ed2, est_civil },
+ *   geografico: { a_defun, sit_defun, area_res, top_departamentos },
+ *   causas: { cau_homol_top10, c_bas1_top10, causa_667_top10 },
+ *   asistencia: { asis_med },
+ *   cruces: { a_defun_x_p_pman_iris_top10 }
+ * }
+ */
+export async function getEDADane() {
+  return request('/eda/dane')
 }

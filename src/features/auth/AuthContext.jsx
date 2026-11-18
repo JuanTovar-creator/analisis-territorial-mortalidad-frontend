@@ -10,7 +10,7 @@ export function DemoAuthProvider({ children }) {
     setUser({
       email: email.trim(),
       role,
-      name: role === 'admin' ? 'Administración demo' : 'Cuenta cliente demo',
+      name: role === 'admin' ? 'Administrador' : 'Cuenta cliente demo',
     })
   }
 

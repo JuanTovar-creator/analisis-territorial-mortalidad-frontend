@@ -5,9 +5,9 @@ import { Card, CardContent } from '@/components/ui/card'
 
 const PAGE_SIZE = 8
 
-function formatPredicho(valor) {
+function formatPorcentaje(valor) {
   if (valor === null || valor === undefined) return 'No disponible'
-  return `${(valor * 100).toFixed(2)}%`
+  return `${valor.toFixed(2)}%`
 }
 
 function formatDiagnosticos(valor) {
@@ -64,6 +64,7 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
   const columns = [
     { key: 'municipio', label: 'Municipio' },
     { key: 'departamento', label: 'Departamento' },
+    { key: 'promedioObservado', label: '% observado sin asistencia' },
     { key: 'promedioPredicho', label: '% predicho sin asistencia' },
     { key: 'totalDiagnosticos', label: 'Total diagnósticos' },
   ]
@@ -105,7 +106,8 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
                   >
                     <td className="px-4 py-2.5 font-medium text-slate-800">{row.municipio}</td>
                     <td className="px-4 py-2.5 text-slate-600">{row.departamento}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-slate-700">{formatPredicho(row.promedioPredicho)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-slate-700">{formatPorcentaje(row.promedioObservado)}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-slate-700">{formatPorcentaje(row.promedioPredicho)}</td>
                     <td className="px-4 py-2.5 text-right text-slate-600">{formatDiagnosticos(row.totalDiagnosticos)}</td>
                   </tr>
                 ))

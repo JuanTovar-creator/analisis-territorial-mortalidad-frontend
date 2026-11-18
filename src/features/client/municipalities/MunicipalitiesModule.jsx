@@ -10,6 +10,7 @@ import MunicipalityDetail from './MunicipalityDetail'
 export default function MunicipalitiesModule() {
   const [municipalities, setMunicipalities] = useState([])
   const [departamentos, setDepartamentos] = useState([])
+  const [modeloUtilizado, setModeloUtilizado] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -29,6 +30,7 @@ export default function MunicipalitiesModule() {
         if (!cancelled) {
           setMunicipalities(data.municipalities || [])
           setDepartamentos(data.departamentos || [])
+          setModeloUtilizado(data.modeloUtilizado || null)
         }
       })
       .catch(err => {
@@ -81,12 +83,25 @@ export default function MunicipalitiesModule() {
     )
   }
 
+  // Formatear nombre del modelo para mostrar
+  const modeloLabel = modeloUtilizado === 'random_forest'
+    ? 'Random Forest'
+    : modeloUtilizado === 'regresion_lineal'
+      ? 'Regresión Lineal'
+      : modeloUtilizado
+        ? modeloUtilizado
+        : null
+
+  const descriptionText = modeloLabel
+    ? `Predicciones generadas con el modelo ${modeloLabel}.`
+    : 'Consulta de municipios disponibles en el sistema de predicción.'
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow="ANÁLISIS TERRITORIAL"
         title="Municipios"
-        description="Consulta de municipios disponibles en el sistema de predicción."
+        description={descriptionText}
       />
 
       {/* Filters */}

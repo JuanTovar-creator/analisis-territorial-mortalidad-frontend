@@ -1,28 +1,28 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { ChartNoAxesColumn, Flag, MapPinned } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Brain, ChartNoAxesColumn, ClipboardList, MapPinned, Percent } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Field, FieldLabel } from '@/components/ui/field'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
-import { getClientOverview } from '@/services/dashboard'
+import { getResumenTodos, getGeneralModelComparison } from '@/services/generalSummary'
+import municipiosCatalog from '@/data/municipios.json'
 
-const periodOptions = [
-  { label: 'Todos los periodos de demo', value: 'all' },
-  { label: 'Primer trimestre demo', value: 'first' },
-  { label: 'Segundo trimestre demo', value: 'second' },
-]
-const scopeOptions = [
-  { label: 'Todos los grupos de muestra', value: 'all' },
-  { label: 'Grupo de muestra A', value: 'groupA' },
-  { label: 'Grupo de muestra B', value: 'groupB' },
-]
+const TOP_N = 15
+
+function formatPct(value) {
+  if (value == null) return '—'
+  return `${Number(value).toFixed(1)} %`
+}
+
+function getModelLabel(key) {
+  if (key === 'random_forest') return 'Random Forest'
+  if (key === 'regresion_lineal') return 'Regresión Lineal'
+  return key
+}
 
 export default function ClientDashboard() {
-  const [period, setPeriod] = useState('all')
-  const [scope, setScope] = useState('all')
-  const [overview, setOverview] = useState(null)
+  const [resumen, setResumen] = useState(null)
+  const [modelos, setModelos] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -30,27 +30,82 @@ export default function ClientDashboard() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    getClientOverview()
-      .then(data => {
-        if (!cancelled) setOverview(data)
-      })
-      .catch(err => {
-        if (!cancelled) setError(err.message || 'Error al cargar los indicadores')
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false)
-      })
+
+    Promise.all([
+      getResumenTodos().catch(err => ({ error: err })),
+      getGeneralModelComparison().catch(err => ({ error: err })),
+    ]).then(([resData, modData]) => {
+      if (cancelled) return
+      if (resData.error) {
+        setError(resData.error.message || 'Error al cargar el resumen de municipios')
+      } else {
+        setResumen(resData)
+      }
+      if (modData.error) {
+        // No bloquear si solo falla la comparación de modelos
+        setModelos(null)
+      } else {
+        setModelos(modData)
+      }
+      setLoading(false)
+    }).catch(err => {
+      if (!cancelled) {
+        setError(err.message || 'Error al cargar los datos')
+        setLoading(false)
+      }
+    })
+
     return () => { cancelled = true }
   }, [])
 
-  const periods = overview?.periods || []
-  const metrics = overview?.metrics || []
+  // Cálculos derivados
+  const {
+    municipiosConDatos,
+    promedioGeneralObservado,
+    promedioGeneralPredicho,
+    totalDiagnosticos,
+    modeloUtilizado,
+    chartData,
+  } = useMemo(() => {
+    if (!resumen || !resumen.municipios || resumen.municipios.length === 0) {
+      return {
+        municipiosConDatos: 0,
+        promedioGeneralObservado: null,
+        promedioGeneralPredicho: null,
+        totalDiagnosticos: 0,
+        modeloUtilizado: null,
+        chartData: [],
+      }
+    }
 
-  const chartData = useMemo(() => {
-    const selectedPeriods = period === 'first' ? periods.slice(0, 3) : period === 'second' ? periods.slice(3) : periods
-    if (scope === 'all') return selectedPeriods
-    return selectedPeriods.map(({ month, [scope]: records }) => ({ month, records }))
-  }, [period, scope, periods])
+    const lista = resumen.municipios
+    const total = lista.length
+
+    // Promedios generales (promedio simple de los promedios municipales)
+    const sumObs = lista.reduce((acc, m) => acc + (m.promedio_observado || 0), 0)
+    const sumPred = lista.reduce((acc, m) => acc + (m.promedio_predicho || 0), 0)
+    const sumDiag = lista.reduce((acc, m) => acc + (m.total_diagnosticos || 0), 0)
+
+    // Top N municipios ordenados por promedio observado (desc)
+    const sorted = [...lista].sort((a, b) => (b.promedio_observado || 0) - (a.promedio_observado || 0))
+    const top = sorted.slice(0, TOP_N)
+
+    const chartData = top.map(m => ({
+      municipio: municipiosCatalog[m.codigo_municipio] || m.codigo_municipio,
+      codigo: m.codigo_municipio,
+      observado: Math.round((m.promedio_observado || 0) * 100) / 100,
+      predicho: Math.round((m.promedio_predicho || 0) * 100) / 100,
+    }))
+
+    return {
+      municipiosConDatos: total,
+      promedioGeneralObservado: sumObs / total,
+      promedioGeneralPredicho: sumPred / total,
+      totalDiagnosticos: sumDiag,
+      modeloUtilizado: resumen.modelo_utilizado,
+      chartData,
+    }
+  }, [resumen])
 
   if (loading) {
     return (
@@ -70,99 +125,248 @@ export default function ClientDashboard() {
     )
   }
 
+  if (!resumen || municipiosConDatos === 0) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader eyebrow="ANÁLISIS TERRITORIAL" title="Resumen general" description="Sin datos disponibles" />
+        <StatePanel
+          title="No hay datos de predicción disponibles"
+          description="El backend no devolvió municipios con datos. Verifica que los modelos estén entrenados y que exista el dataset de entrenamiento."
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader eyebrow="ANÁLISIS TERRITORIAL" title="Resumen general" description="Vista inicial para consulta de indicadores territoriales." />
+      <PageHeader
+        eyebrow="ANÁLISIS TERRITORIAL"
+        title="Resumen general"
+        description="Indicadores de defunciones sin asistencia médica basados en predicciones del modelo."
+      />
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Indicadores disponibles">
-        {metrics.map((metric) => {
-          const icon = metric.icon === 'map' ? MapPinned : metric.icon === 'flag' ? Flag : ChartNoAxesColumn
-          return <MetricCard key={metric.label} {...metric} icon={icon} />
-        })}
+      {/* Métricas principales */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores principales">
+        <MetricCard
+          label="Municipios con datos"
+          value={municipiosConDatos}
+          detail="Municipios con predicciones disponibles"
+          icon={MapPinned}
+        />
+        <MetricCard
+          label="Promedio observado"
+          value={formatPct(promedioGeneralObservado)}
+          detail="Promedio general de defunciones sin asistencia médica"
+          icon={Percent}
+        />
+        <MetricCard
+          label="Promedio predicho"
+          value={formatPct(promedioGeneralPredicho)}
+          detail="Promedio general estimado por el modelo"
+          icon={ChartNoAxesColumn}
+        />
+        <MetricCard
+          label="Diagnósticos analizados"
+          value={totalDiagnosticos.toLocaleString('es-CO')}
+          detail={`Modelo activo: ${getModelLabel(modeloUtilizado)}`}
+          icon={ClipboardList}
+        />
       </section>
 
-      <Card>
-        <CardHeader className="gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <CardTitle>Filtros de consulta</CardTitle>
-            <CardDescription className="mt-1">Opciones ilustrativas. No filtran fuentes oficiales.</CardDescription>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 sm:min-w-[390px]">
-            <Field className="gap-1.5">
-              <FieldLabel htmlFor="period-filter">Periodo</FieldLabel>
-              <Select value={period} onValueChange={(value) => value && setPeriod(value)} items={periodOptions}>
-                <SelectTrigger id="period-filter" className="w-full bg-white"><SelectValue placeholder="Selecciona un periodo" /></SelectTrigger>
-                <SelectContent><SelectGroup>{periodOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectGroup></SelectContent>
-              </Select>
-            </Field>
-            <Field className="gap-1.5">
-              <FieldLabel htmlFor="scope-filter">Grupo sintético</FieldLabel>
-              <Select value={scope} onValueChange={(value) => value && setScope(value)} items={scopeOptions}>
-                <SelectTrigger id="scope-filter" className="w-full bg-white"><SelectValue placeholder="Selecciona un grupo" /></SelectTrigger>
-                <SelectContent><SelectGroup>{scopeOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectGroup></SelectContent>
-              </Select>
-            </Field>
-          </div>
-        </CardHeader>
-      </Card>
-
-      <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="min-w-0">
+      {/* Información del modelo */}
+      {modelos && (
+        <Card>
           <CardHeader>
-            <CardTitle>Distribución de registros de ejemplo</CardTitle>
-            <CardDescription>Conteos sintéticos por periodo y grupo de muestra. No representan datos territoriales reales.</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Brain size={18} aria-hidden="true" />
+              Modelo activo
+            </CardTitle>
+            <CardDescription>
+              Información del modelo seleccionado durante la evaluación.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] w-full" role="img" aria-label="Gráfico de barras con conteos ficticios de los grupos de muestra A y B entre enero y junio">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -18 }} accessibilityLayer>
-                  <CartesianGrid vertical={false} stroke="#e9edf5" strokeDasharray="4 4" />
-                  <XAxis dataKey="month" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
-                  <YAxis tickLine={false} axisLine={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <Tooltip cursor={{ fill: '#f1f3ff' }} contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 8px 24px rgba(30,41,59,.08)' }} />
-                  {scope === 'all' ? <>
-                    <Bar dataKey="groupA" name="Grupo de muestra A" fill="#6366f1" radius={[5, 5, 0, 0]} maxBarSize={24} />
-                    <Bar dataKey="groupB" name="Grupo de muestra B" fill="#a78bfa" radius={[5, 5, 0, 0]} maxBarSize={24} />
-                  </> : <Bar dataKey="records" name={scope === 'groupA' ? 'Grupo de muestra A' : 'Grupo de muestra B'} fill="#6366f1" radius={[5, 5, 0, 0]} maxBarSize={30} />}
-                </BarChart>
-              </ResponsiveContainer>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Modelo seleccionado</p>
+                <p className="mt-1 text-lg font-semibold text-slate-800">
+                  {getModelLabel(modelos.modelo_seleccionado)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Criterio de selección</p>
+                <p className="mt-1 text-sm text-slate-700">{modelos.criterio_seleccion}</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Registros entrenamiento</p>
+                <p className="mt-1 text-lg font-semibold text-slate-800">
+                  {modelos.registros_entrenamiento?.toLocaleString('es-CO') || '—'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Municipios en entrenamiento</p>
+                <p className="mt-1 text-lg font-semibold text-slate-800">
+                  {modelos.municipios_disponibles?.toLocaleString('es-CO') || '—'}
+                </p>
+              </div>
             </div>
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">Las cifras del gráfico son solo un ejemplo visual. No provienen de DANE, RIPS ni de un modelo predictivo.</p>
-          </CardContent>
-        </Card>
 
-        <div className="flex flex-col gap-5">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mapa territorial</CardTitle>
-              <CardDescription>Vista pendiente de cartografía validada.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StatePanel
-                title="Geometrías municipales no conectadas"
-                description="No se dibuja un mapa provisional para evitar representar límites o ubicaciones ficticias. Esta área se habilitará cuando estén disponibles geometrías oficiales."
-                className="border-dashed bg-slate-50/70 shadow-none"
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Resumen de prioridades</CardTitle>
-              <CardDescription>Clasificación y niveles sujetos a metodología aprobada.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-start gap-3 rounded-xl border border-violet-100 bg-violet-50/60 p-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-violet-700"><Flag size={17} aria-hidden="true" /></span>
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Niveles no definidos</p>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">No se muestran rangos ni prioridades hasta conectar la taxonomía validada y sus datos.</p>
+            {/* Métricas de ambos modelos */}
+            {modelos.modelos && (
+              <div className="mt-6">
+                <h4 className="mb-3 text-sm font-semibold text-slate-700">Comparación de métricas de validación</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="pb-2 text-left font-medium text-muted-foreground">Métrica</th>
+                        <th className="pb-2 text-right font-medium text-muted-foreground">Regresión Lineal</th>
+                        <th className="pb-2 text-right font-medium text-muted-foreground">Random Forest</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {modelos.modelos.regresion_lineal?.metricas_validacion && Object.entries(
+                        modelos.modelos.regresion_lineal.metricas_validacion
+                      ).map(([key, rlVal]) => {
+                        const rfVal = modelos.modelos.random_forest?.metricas_validacion?.[key]
+                        return (
+                          <tr key={key} className="border-b border-slate-100 last:border-0">
+                            <td className="py-2 text-slate-700 capitalize">{key.replace(/_/g, ' ')}</td>
+                            <td className="py-2 text-right font-mono text-slate-700">
+                              {typeof rlVal === 'number' ? rlVal.toFixed(4) : rlVal}
+                            </td>
+                            <td className="py-2 text-right font-mono text-slate-700">
+                              {typeof rfVal === 'number' ? rfVal.toFixed(4) : rfVal ?? '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Gráfica comparativa */}
+      <Card className="min-w-0">
+        <CardHeader>
+          <CardTitle>Observado vs predicho por municipio</CardTitle>
+          <CardDescription>
+            Top {TOP_N} municipios con mayor porcentaje observado de defunciones sin asistencia médica.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] w-full" role="img" aria-label="Gráfico de barras comparando valores observados y predichos por municipio">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 8, right: 8, bottom: 32, left: -18 }}
+                accessibilityLayer
+              >
+                <CartesianGrid vertical={false} stroke="#e9edf5" strokeDasharray="4 4" />
+                <XAxis
+                  dataKey="municipio"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#64748b', fontSize: 10 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  tickFormatter={(val) => `${val} %`}
+                />
+                <Tooltip
+                  cursor={{ fill: '#f1f3ff' }}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 8px 24px rgba(30,41,59,.08)',
+                  }}
+                  formatter={(value, name) => [
+                    `${Number(value).toFixed(1)} %`,
+                    name === 'observado' ? 'Valor observado' : 'Valor predicho',
+                  ]}
+                />
+                <Legend wrapperStyle={{ paddingTop: 8 }} />
+                <Bar
+                  dataKey="observado"
+                  name="Observado"
+                  fill="#6366f1"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={20}
+                />
+                <Bar
+                  dataKey="predicho"
+                  name="Predicho"
+                  fill="#a78bfa"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={20}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            Los porcentajes representan el promedio de defunciones sin asistencia médica por municipio,
+            no tasas de mortalidad por habitantes.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Tabla resumen de municipios */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumen por municipio</CardTitle>
+          <CardDescription>
+            Valores observados y predichos promediados por diagnóstico para cada municipio.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="pb-2 text-left font-medium text-muted-foreground">Municipio</th>
+                  <th className="pb-2 text-right font-medium text-muted-foreground">Observado (%)</th>
+                  <th className="pb-2 text-right font-medium text-muted-foreground">Predicho (%)</th>
+                  <th className="pb-2 text-right font-medium text-muted-foreground">Diferencia</th>
+                  <th className="pb-2 text-right font-medium text-muted-foreground">Diagnósticos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {chartData.map((m) => {
+                  const diff = m.predicho - m.observado
+                  return (
+                    <tr key={m.codigo} className="border-b border-slate-100 last:border-0">
+                      <td className="py-2 text-slate-700">{m.municipio}</td>
+                      <td className="py-2 text-right font-mono text-slate-700">{m.observado.toFixed(1)}</td>
+                      <td className="py-2 text-right font-mono text-slate-700">{m.predicho.toFixed(1)}</td>
+                      <td className={`py-2 text-right font-mono ${diff >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {diff >= 0 ? '+' : ''}{diff.toFixed(1)}
+                      </td>
+                      <td className="py-2 text-right text-slate-700">
+                        {resumen.municipios.find(x => x.codigo_municipio === m.codigo)?.total_diagnosticos ?? '—'}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+          {resumen.municipios.length > TOP_N && (
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">
+              Se muestran los {TOP_N} municipios con mayor porcentaje observado.
+              Total: {resumen.municipios.length} municipios con datos.
+            </p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

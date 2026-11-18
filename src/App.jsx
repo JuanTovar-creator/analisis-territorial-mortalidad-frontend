@@ -36,7 +36,6 @@ function AppRoutes() {
         <Route index element={<Suspense fallback={<DashboardLoading />}><AdminDashboard /></Suspense>} />
         <Route path="data" element={<Suspense fallback={<DashboardLoading />}><DataModule /></Suspense>} />
         <Route path="evaluation" element={<Suspense fallback={<DashboardLoading />}><EvaluationModule /></Suspense>} />
-        <Route path="history" element={<ModulePlaceholder title="Historial" description="Registro de actividad y procesos." />} />
         <Route path="account" element={<ModulePlaceholder title="Mi cuenta" description="Configuración de la cuenta de administrador." />} />
       </Route>
       <Route path="/client" element={<ProtectedRoute role="client"><AppShell role="client" /></ProtectedRoute>}>

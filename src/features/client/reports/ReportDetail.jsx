@@ -3,7 +3,6 @@ import { ArrowLeft, Download, FileText, Loader2, MapPin, Calendar, Tag, X } from
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 
 function estadoBadge(estado) {
@@ -45,7 +44,6 @@ export default function ReportDetail({ informe, onBack, onDownload, downloadLoad
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-semibold tracking-tight text-slate-800">{informe.titulo}</h2>
-            <DemoBadge />
             {estadoBadge(informe.estado)}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -101,10 +99,7 @@ export default function ReportDetail({ informe, onBack, onDownload, downloadLoad
       {informe.estado === 'disponible' && (
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <CardTitle>Descargar informe</CardTitle>
-              <DemoBadge variant="info" children="Simulado" />
-            </div>
+            <CardTitle>Descargar informe</CardTitle>
             <CardDescription>
               En modo demostración, la descarga genera un archivo ficticio. En producción, el backend suministrará los archivos reales.
             </CardDescription>

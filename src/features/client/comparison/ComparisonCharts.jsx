@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { AlertTriangle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts'
 import { Badge } from '@/components/ui/badge'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const chartColors = ['#6366f1', '#a78bfa', '#f59e0b', '#10b981', '#ef4444']
@@ -73,12 +72,9 @@ export default function ComparisonCharts({ data }) {
       {/* Bar chart: socioeconomic indicators */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Indicadores socioeconómicos</CardTitle>
-            <DemoBadge />
-          </div>
+          <CardTitle>Indicadores socioeconómicos</CardTitle>
           <CardDescription>
-            Comparación visual de indicadores entre municipios seleccionados. Datos sintéticos de demostración.
+            Comparación visual de cobertura sanitaria, acceso a agua, tasa de mortalidad e índice de pobreza.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -103,21 +99,15 @@ export default function ComparisonCharts({ data }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-3 text-xs leading-5 text-muted-foreground">
-            Los valores son solo un ejemplo visual. No provienen de fuentes oficiales ni de un modelo predictivo.
-          </p>
         </CardContent>
       </Card>
 
       {/* Radar chart: risk profile */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Perfil de riesgo</CardTitle>
-            <DemoBadge />
-          </div>
+          <CardTitle>Perfil de riesgo</CardTitle>
           <CardDescription>
-            Radar comparativo de indicadores de riesgo entre municipios. Datos sintéticos de demostración.
+            Radar comparativo de indicadores de riesgo entre municipios seleccionados.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,12 +138,9 @@ export default function ComparisonCharts({ data }) {
       {/* Predictions comparison */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Predicciones del modelo</CardTitle>
-            <DemoBadge />
-          </div>
+          <CardTitle>Predicciones del modelo</CardTitle>
           <CardDescription>
-            Probabilidad de riesgo y tendencia predicha por el modelo. Resultados sintéticos de demostración.
+            Probabilidad de riesgo y tendencia predicha por el modelo para cada municipio.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -196,15 +183,6 @@ export default function ComparisonCharts({ data }) {
             ))}
           </div>
 
-          <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-amber-600" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800">Nota importante</p>
-              <p className="mt-1 text-xs leading-5 text-amber-700">
-                Estas predicciones son datos sintéticos de demostración. En producción, el backend calculará las predicciones reales basadas en los datos de cada municipio y el modelo publicado.
-              </p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

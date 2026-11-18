@@ -4,7 +4,7 @@ import { ChartNoAxesColumn, Flag, MapPinned } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DemoNotice, MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { getClientOverview } from '@/services/dashboard'
 
@@ -73,7 +73,6 @@ export default function ClientDashboard() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader eyebrow="ANÁLISIS TERRITORIAL" title="Resumen general" description="Vista inicial para consulta de indicadores territoriales." />
-      <DemoNotice />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="Indicadores disponibles">
         {metrics.map((metric) => {

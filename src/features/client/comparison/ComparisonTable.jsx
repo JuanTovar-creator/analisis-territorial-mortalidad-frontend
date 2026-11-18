@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 function riesgoBadge(riesgo) {
@@ -28,12 +27,9 @@ export default function ComparisonTable({ data }) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <CardTitle>Indicadores comparativos</CardTitle>
-          <DemoBadge />
-        </div>
+        <CardTitle>Indicadores comparativos</CardTitle>
         <CardDescription>
-          Datos sintéticos de demostración. Los valores reales los suministrará el backend.
+          Comparación de indicadores, niveles de riesgo y predicciones entre municipios seleccionados.
         </CardDescription>
       </CardHeader>
       <CardContent>

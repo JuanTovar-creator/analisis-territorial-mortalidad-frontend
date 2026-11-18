@@ -1,5 +1,4 @@
 import { AlertCircle, CheckCircle2, Info, Loader2, Play } from 'lucide-react'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { modelTypes, demoDatasets, dataSplit } from '../demo/training-demo'
 
@@ -63,7 +62,6 @@ export default function TrainingExecution() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Ejecución del entrenamiento</h2>
-        <DemoBadge>Simulación de demostración — no se entrena un modelo real</DemoBadge>
       </div>
 
       {/* Configuration summary */}

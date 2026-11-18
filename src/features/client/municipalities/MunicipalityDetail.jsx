@@ -1,7 +1,6 @@
 import { ArrowLeft, AlertTriangle, Activity, Droplets, Users, HeartPulse, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Badge } from '@/components/ui/badge'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MetricCard } from '@/components/dashboard/DashboardPrimitives'
 
@@ -46,7 +45,6 @@ export default function MunicipalityDetail({ municipality, onClose }) {
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-xl font-semibold text-slate-800">{municipio}</h2>
             {riesgoBadge(riesgo)}
-            <DemoBadge variant="info" />
           </div>
           <p className="mt-1 text-sm text-muted-foreground">{departamento} · {tipo}</p>
         </div>
@@ -89,10 +87,7 @@ export default function MunicipalityDetail({ municipality, onClose }) {
       {/* Prediction section */}
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Predicción del modelo</CardTitle>
-            <DemoBadge />
-          </div>
+          <CardTitle>Predicción del modelo</CardTitle>
           <CardDescription>Resultado sintético suministrado por el backend. No es una predicción real.</CardDescription>
         </CardHeader>
         <CardContent>

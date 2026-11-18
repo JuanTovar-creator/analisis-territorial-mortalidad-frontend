@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { GitCompareArrows } from 'lucide-react'
-import { DemoNotice, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { getMunicipalities } from '@/services/municipalities'
 import MunicipalitySelector from './MunicipalitySelector'
@@ -94,8 +94,6 @@ export default function ComparisonModule() {
         title="Comparación territorial"
         description="Compara indicadores, niveles de riesgo y predicciones entre municipios."
       />
-      <DemoNotice />
-
       {/* Selector */}
       <MunicipalitySelector
         available={availableMunicipalities}

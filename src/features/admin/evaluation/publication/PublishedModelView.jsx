@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { CheckCircle2, Package } from 'lucide-react'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { modelTypes, demoDatasets } from '@/features/admin/training/demo/training-demo'
@@ -85,7 +84,6 @@ export default function PublishedModelView() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Modelo publicado</h2>
-        <DemoBadge>Datos de demostración</DemoBadge>
       </div>
 
       <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50/50 p-4">

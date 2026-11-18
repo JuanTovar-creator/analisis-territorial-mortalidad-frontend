@@ -1,5 +1,4 @@
 import { Database, GitBranch, Settings2 } from 'lucide-react'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { demoDatasets, modelTypes, dataSplit } from '../demo/training-demo'
 
@@ -30,7 +29,6 @@ export default function TrainingConfigView() {
                 Visualiza la configuración utilizada para el entrenamiento. Los parámetros son determinados por el backend.
               </CardDescription>
             </div>
-            <DemoBadge>Simulación de demostración</DemoBadge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-8">

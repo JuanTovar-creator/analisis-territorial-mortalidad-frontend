@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FileBarChart2 } from 'lucide-react'
-import { DemoNotice, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { getInformes, getInformeDetail, downloadInforme } from '@/services/reports'
 import ReportsFilters from './ReportsFilters'
@@ -138,7 +138,6 @@ export default function ReportsModule() {
         title="Informes"
         description="Consulta, filtra y descarga los informes territoriales generados por el sistema."
       />
-      <DemoNotice />
 
       {/* Detail view */}
       {selectedInformeId ? (

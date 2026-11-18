@@ -2,7 +2,6 @@ import { BookOpenCheck, Database, GitCompareArrows, Info, Layers, LineChart, Set
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DemoNotice } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 
 function MethodologySection({ icon: Icon, title, description, children, tone = 'primary' }) {
@@ -70,7 +69,6 @@ export default function MethodologyModule() {
         title="Metodología"
         description="Documentación de la metodología utilizada para la predicción de riesgo de mortalidad evitable por falta de oportunidad en la atención en zonas rurales."
       />
-      <DemoNotice />
 
       {/* 1. Objetivo del proyecto */}
       <MethodologySection

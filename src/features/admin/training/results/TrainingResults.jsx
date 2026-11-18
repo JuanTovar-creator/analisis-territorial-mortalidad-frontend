@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -63,7 +62,6 @@ export default function TrainingResults() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-slate-800">Resultados del entrenamiento</h2>
-        <DemoBadge>Datos sintéticos de demostración</DemoBadge>
       </div>
 
       {/* Model selector */}

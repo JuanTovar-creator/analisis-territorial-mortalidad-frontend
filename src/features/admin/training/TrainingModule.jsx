@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Activity, BarChart3, History, Settings } from 'lucide-react'
-import { DemoNotice, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { TabNavigation } from '@/components/dashboard/TabNavigation'
 import TrainingConfigView from './config/TrainingConfigView'
@@ -46,7 +46,6 @@ export default function TrainingModule() {
         title="Entrenamiento de modelos"
         description="Visualiza la configuración, progreso, resultados e historial de entrenamientos de modelos."
       />
-      <DemoNotice />
 
       <TabNavigation tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 

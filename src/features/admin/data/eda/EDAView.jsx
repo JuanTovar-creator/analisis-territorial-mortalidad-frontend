@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 import { getEDAStatus, getEDADane } from '@/services/data'
 import {
   edaIndicators,
@@ -325,12 +324,6 @@ export default function EDAView() {
       ) : edaIndicatorsError || !edaIndicatorsReal ? (
         /* Fallback a datos demo si el backend no responde */
         <>
-          <div className="flex items-center gap-2">
-            <DemoBadge>Simulación de demostración</DemoBadge>
-            {edaIndicatorsError && (
-              <span className="text-xs text-amber-600">({edaIndicatorsError})</span>
-            )}
-          </div>
           <EDAIndicators indicators={edaIndicators} />
         </>
       ) : (
@@ -371,10 +364,6 @@ export default function EDAView() {
         </>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <DemoBadge>Simulación de demostración</DemoBadge>
-            <span className="text-xs text-slate-500">Gráficas aún no integradas</span>
-          </div>
           <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
             <EDAChart data={filteredChartData} />
             <EDADataQuality quality={dataQuality} />

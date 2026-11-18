@@ -3,7 +3,6 @@ import { Eye, Download, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
 
 const PAGE_SIZE = 10
 
@@ -44,10 +43,7 @@ export default function ReportsTable({ informes, onViewDetail, onDownload, downl
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <CardTitle>Informes disponibles</CardTitle>
-          <DemoBadge />
-        </div>
+        <CardTitle>Informes disponibles</CardTitle>
         <CardDescription>
           {informes.length} informe{informes.length !== 1 ? 's' : ''} encontrado{informes.length !== 1 ? 's' : ''}. Datos de demostración.
         </CardDescription>

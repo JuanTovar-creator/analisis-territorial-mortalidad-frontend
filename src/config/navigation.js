@@ -1,7 +1,6 @@
 import {
   Activity,
   BookOpenCheck,
-  ClipboardList,
   Database,
   FileBarChart2,
   GitCompareArrows,
@@ -20,10 +19,6 @@ export const ROLE_NAVIGATION = {
         { title: 'Datos', path: '/admin/data', icon: Database },
         { title: 'Evaluación y publicación', path: '/admin/evaluation', icon: BookOpenCheck },
       ],
-    },
-    {
-      label: 'SEGUIMIENTO',
-      items: [{ title: 'Historial', path: '/admin/history', icon: ClipboardList }],
     },
     {
       label: 'CUENTA',

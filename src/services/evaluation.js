@@ -5,10 +5,7 @@
 import { IS_DEMO_MODE } from '@/config/app-config'
 import { request } from './api'
 import { metricResults, modelTypes } from '@/features/admin/training/demo/training-demo'
-import {
-  publicationHistory,
-  demoVersion,
-} from '@/features/admin/evaluation/demo/evaluation-demo'
+import { demoVersion } from '@/features/admin/evaluation/demo/evaluation-demo'
 
 // Modelo publicado actualmente (demo)
 const demoPublishedModel = {
@@ -48,14 +45,3 @@ export async function getPublishedModel() {
   return request('/evaluation/published-model')
 }
 
-/**
- * Obtiene el historial de publicaciones.
- * En modo demo devuelve registros precargados.
- * En modo real llama a la API y propaga errores.
- */
-export async function getPublicationHistory() {
-  if (IS_DEMO_MODE) {
-    return publicationHistory
-  }
-  return request('/evaluation/publication-history')
-}

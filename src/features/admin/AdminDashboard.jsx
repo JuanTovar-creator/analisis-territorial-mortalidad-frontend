@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Activity, BrainCircuit, Check, Clock3, Database, ShieldCheck, Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { DemoNotice, MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
+import { MetricCard, StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { PageHeader } from '@/components/dashboard/PageHeader'
 import { getAdminOverview } from '@/services/dashboard'
 
@@ -53,7 +53,6 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader eyebrow="OPERACIÓN" title="Panel principal" description="Vista general del entorno administrativo y sus componentes." />
-      <DemoNotice />
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores de demostración">
         {metrics.map((metric) => (

@@ -3,8 +3,7 @@
 // Combina los códigos con los resúmenes agregados y el catálogo de departamentos.
 // Los errores se propagan sin fallback a datos ficticios.
 
-import { getMunicipiosList, getResumenTodos } from './predictions'
-import { demoMunicipalities } from '@/features/client/municipalities/demo/municipalities-demo'
+import { getMunicipiosList, getResumenTodos, getMunicipioPrediction } from './predictions'
 import municipiosCatalog from '@/data/municipios.json'
 import departamentosCatalog from '@/data/departamentos.json'
 
@@ -51,15 +50,6 @@ export async function getMunicipalities() {
       promedioPredicho: resumen?.promedio_predicho ?? null,
       promedioObservado: resumen?.promedio_observado ?? null,
       totalDiagnosticos: resumen?.total_diagnosticos ?? null,
-      // Compatibilidad con detalle existente
-      coberturaSanitaria: 0,
-      accesoAgua: 0,
-      indicePobreza: 0,
-      predicciones: {
-        probabilidadRiesgo: resumen?.promedio_predicho ?? null,
-        tendencia: 'N/A',
-        nivelPredicho: 'N/A',
-      },
     }
   })
 
@@ -70,19 +60,22 @@ export async function getMunicipalities() {
   return {
     municipalities: municipios,
     departamentos,
-    riesgos: [],
     total: listaData.total_municipios,
+    modeloUtilizado: resumenData?.modelo_utilizado ?? null,
   }
 }
 
 /**
- * Obtiene el detalle de un municipio específico.
- * Actualmente devuelve datos demo; se integrará con el backend cuando se conecte el detalle.
+ * Obtiene el detalle de un municipio específico desde el backend.
+ * Devuelve los resultados por grupo de diagnóstico con valor observado y predicho.
  */
-export async function getMunicipalityDetail(id) {
-  const municipality = demoMunicipalities.find(m => m.id === id)
-  if (!municipality) {
-    throw new Error('Municipio no encontrado')
+export async function getMunicipalityDetail(codigo) {
+  if (!codigo) {
+    throw new Error('Código de municipio requerido')
   }
-  return municipality
+  const data = await getMunicipioPrediction(codigo)
+  if (!data || !data.encontrado) {
+    throw new Error(`No se encontraron datos para el municipio ${codigo}`)
+  }
+  return data
 }

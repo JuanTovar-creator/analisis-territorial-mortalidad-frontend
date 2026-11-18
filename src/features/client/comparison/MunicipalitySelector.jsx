@@ -7,16 +7,6 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-function riesgoBadge(riesgo) {
-  const styles = {
-    'Bajo': 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    'Moderado': 'border-blue-200 bg-blue-50 text-blue-700',
-    'Alto': 'border-amber-200 bg-amber-50 text-amber-700',
-    'Muy alto': 'border-red-200 bg-red-50 text-red-700',
-  }
-  return <Badge variant="outline" className={styles[riesgo] || styles['Moderado']}>{riesgo}</Badge>
-}
-
 export default function MunicipalitySelector({ available, selected, departamentos, onAdd, onRemove, minSelection, maxSelection }) {
   const [search, setSearch] = useState('')
   const [departamento, setDepartamento] = useState('')
@@ -108,7 +98,6 @@ export default function MunicipalitySelector({ available, selected, departamento
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="text-sm font-medium text-slate-700 truncate">{m.municipio}</span>
                         <span className="text-xs text-muted-foreground truncate">{m.departamento}</span>
-                        {riesgoBadge(m.riesgo)}
                       </div>
                       <Button
                         variant="outline"

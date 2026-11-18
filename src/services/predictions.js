@@ -138,6 +138,28 @@ export async function getResumenTodos() {
 }
 
 /**
+ * Compara el resumen agregado de entre 2 y 10 municipios.
+ * El backend devuelve: { modelo_utilizado, total_municipios, municipios: [{ codigo_municipio, encontrado, promedio_predicho, promedio_observado, total_diagnosticos }] }
+ *
+ * @param {string[]} codigos - Array de códigos de municipio (ej: ['05001', '08001']).
+ * @returns {Promise<{modelo_utilizado: string, total_municipios: number, municipios: Array}>}
+ */
+export async function getCompararResumen(codigos) {
+  if (!codigos || !Array.isArray(codigos) || codigos.length < 2) {
+    throw new Error('Se requieren al menos dos códigos de municipio para comparar')
+  }
+
+  const params = new URLSearchParams({ codigos: codigos.join(',') })
+  const data = await publicRequest(`/predictions/comparar-resumen?${params}`)
+
+  if (!data || !Array.isArray(data.municipios)) {
+    throw new Error('Respuesta inválida: la comparación no contiene municipios')
+  }
+
+  return data
+}
+
+/**
  * Verifica la conectividad con el backend FastAPI.
  * Devuelve true si el endpoint /health responde correctamente.
  *

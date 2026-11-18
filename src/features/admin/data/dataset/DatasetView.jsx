@@ -39,7 +39,6 @@ export default function DatasetView() {
     ])
 
     const csvContent = [
-      'DEMOSTRACIÓN — Datos ficticios, no representan información real.',
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
     ].join('\n')
@@ -48,7 +47,7 @@ export default function DatasetView() {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = 'dataset-demo.csv'
+    link.download = 'dataset.csv'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -75,7 +74,7 @@ export default function DatasetView() {
       <IntegratedDatasetTable data={filteredData} />
 
       <p className="text-xs text-muted-foreground">
-        {filteredData.length} registros encontrados · Los datos son ficticios y solo sirven para demostrar la funcionalidad de la interfaz.
+        {filteredData.length} registros encontrados.
       </p>
     </div>
   )

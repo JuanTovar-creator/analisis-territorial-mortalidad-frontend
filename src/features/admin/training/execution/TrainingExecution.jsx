@@ -163,7 +163,7 @@ export default function TrainingExecution() {
             Estado suministrado por el backend
           </p>
           <p className="text-xs text-blue-700">
-            El backend ejecuta el entrenamiento y notifica el progreso. Esta vista muestra el estado actual como demostración.
+            El backend ejecuta el entrenamiento y notifica el progreso. Esta vista muestra el estado actual.
           </p>
         </div>
       </div>

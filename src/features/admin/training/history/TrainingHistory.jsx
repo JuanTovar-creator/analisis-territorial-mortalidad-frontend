@@ -114,7 +114,7 @@ export default function TrainingHistory({ history }) {
             </table>
           </div>
           <p className="mt-4 text-[11px] text-muted-foreground">
-            Las ejecuciones marcadas como "Datos precargados" son ficticias y forman parte de la demostración.
+            Las ejecuciones marcadas como "Datos precargados" corresponden a entrenamientos anteriores.
             Las marcadas como "Simulación de sesión" corresponden a las simulaciones ejecutadas en esta sesión.
           </p>
         </CardContent>

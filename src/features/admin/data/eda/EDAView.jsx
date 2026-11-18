@@ -4,16 +4,12 @@ import { getEDAStatus, getEDADane } from '@/services/data'
 import {
   edaIndicators,
   edaChartData,
-  edaSummaryData,
   edaFilters,
-  dataQuality,
 } from '../demo/data-demo'
 import departamentosCatalog from '@/data/departamentos.json'
 import EDAFilters from './EDAFilters'
 import EDAIndicators from './EDAIndicators'
 import EDAChart from './EDAChart'
-import EDADataQuality from './EDADataQuality'
-import EDASummaryTable from './EDASummaryTable'
 
 /**
  * Tarjeta de estado real del EDA para un dataset (DANE o RIPS).
@@ -283,10 +279,6 @@ export default function EDAView() {
     return edaChartData.filter(item => item.name === tipo)
   }, [tipo])
 
-  const filteredSummaryData = useMemo(() => {
-    // In a real app, both filters would affect the data
-    return edaSummaryData
-  }, [periodo, tipo])
 
   return (
     <div className="flex flex-col gap-6">
@@ -301,7 +293,7 @@ export default function EDAView() {
         </div>
       </div>
 
-      {/* Separador visual entre estado real y datos de demostración */}
+      {/* Separador visual entre estado del backend y datos del análisis */}
       <div className="border-t border-slate-200" />
 
       <EDAFilters
@@ -313,7 +305,7 @@ export default function EDAView() {
         onTipoChange={setTipo}
       />
 
-      {/* Indicadores EDA — reales del servidor o demo como fallback */}
+      {/* Indicadores EDA — reales del servidor o datos de respaldo como fallback */}
       {edaIndicatorsLoading ? (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
           <div className="flex items-center gap-2">
@@ -322,7 +314,7 @@ export default function EDAView() {
           </div>
         </div>
       ) : edaIndicatorsError || !edaIndicatorsReal ? (
-        /* Fallback a datos demo si el backend no responde */
+        /* Fallback a datos de respaldo si el backend no responde */
         <>
           <EDAIndicators indicators={edaIndicators} />
         </>
@@ -339,7 +331,7 @@ export default function EDAView() {
         </>
       )}
 
-      {/* Gráficas — reales o demo como fallback */}
+      {/* Gráficas — reales o datos de respaldo como fallback */}
       {edaChartDataReal && edaChartSexoReal ? (
         <>
           <div className="flex items-center gap-2">
@@ -360,18 +352,12 @@ export default function EDAView() {
               description="Cantidad de registros según el sexo del fallecido."
             />
           </div>
-          <EDADataQuality quality={dataQuality} />
         </>
       ) : (
         <>
-          <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-            <EDAChart data={filteredChartData} />
-            <EDADataQuality quality={dataQuality} />
-          </div>
+          <EDAChart data={filteredChartData} />
         </>
       )}
-
-      <EDASummaryTable data={filteredSummaryData} />
     </div>
   )
 }

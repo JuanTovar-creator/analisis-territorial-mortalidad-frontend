@@ -14,11 +14,6 @@ function formatPct(value) {
   return `${Number(value).toFixed(1)} %`
 }
 
-function getModelLabel(key) {
-  if (key === 'random_forest') return 'Random Forest'
-  if (key === 'regresion_lineal') return 'Regresión Lineal'
-  return key
-}
 
 export default function ClientDashboard() {
   const [resumen, setResumen] = useState(null)
@@ -64,7 +59,6 @@ export default function ClientDashboard() {
     promedioGeneralObservado,
     promedioGeneralPredicho,
     totalDiagnosticos,
-    modeloUtilizado,
     chartData,
   } = useMemo(() => {
     if (!resumen || !resumen.municipios || resumen.municipios.length === 0) {
@@ -73,7 +67,6 @@ export default function ClientDashboard() {
         promedioGeneralObservado: null,
         promedioGeneralPredicho: null,
         totalDiagnosticos: 0,
-        modeloUtilizado: null,
         chartData: [],
       }
     }
@@ -102,7 +95,6 @@ export default function ClientDashboard() {
       promedioGeneralObservado: sumObs / total,
       promedioGeneralPredicho: sumPred / total,
       totalDiagnosticos: sumDiag,
-      modeloUtilizado: resumen.modelo_utilizado,
       chartData,
     }
   }, [resumen])
@@ -168,30 +160,28 @@ export default function ClientDashboard() {
         <MetricCard
           label="Diagnósticos analizados"
           value={totalDiagnosticos.toLocaleString('es-CO')}
-          detail={`Modelo activo: ${getModelLabel(modeloUtilizado)}`}
+          detail="Modelo de predicción: Random Forest"
           icon={ClipboardList}
         />
       </section>
 
-      {/* Información del modelo */}
+      {/* Información del modelo Random Forest */}
       {modelos && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Brain size={18} aria-hidden="true" />
-              Modelo activo
+              Modelo de predicción: Random Forest
             </CardTitle>
             <CardDescription>
-              Información del modelo seleccionado durante la evaluación.
+              Detalles del modelo Random Forest utilizado para generar las predicciones.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Modelo seleccionado</p>
-                <p className="mt-1 text-lg font-semibold text-slate-800">
-                  {getModelLabel(modelos.modelo_seleccionado)}
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Algoritmo</p>
+                <p className="mt-1 text-lg font-semibold text-slate-800">Random Forest</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Criterio de selección</p>
@@ -211,36 +201,29 @@ export default function ClientDashboard() {
               </div>
             </div>
 
-            {/* Métricas de ambos modelos */}
-            {modelos.modelos && (
+            {/* Métricas de validación de Random Forest */}
+            {modelos.modelos?.random_forest?.metricas_validacion && (
               <div className="mt-6">
-                <h4 className="mb-3 text-sm font-semibold text-slate-700">Comparación de métricas de validación</h4>
+                <h4 className="mb-3 text-sm font-semibold text-slate-700">Métricas de validación — Random Forest</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-200">
                         <th className="pb-2 text-left font-medium text-muted-foreground">Métrica</th>
-                        <th className="pb-2 text-right font-medium text-muted-foreground">Regresión Lineal</th>
-                        <th className="pb-2 text-right font-medium text-muted-foreground">Random Forest</th>
+                        <th className="pb-2 text-right font-medium text-muted-foreground">Valor</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {modelos.modelos.regresion_lineal?.metricas_validacion && Object.entries(
-                        modelos.modelos.regresion_lineal.metricas_validacion
-                      ).map(([key, rlVal]) => {
-                        const rfVal = modelos.modelos.random_forest?.metricas_validacion?.[key]
-                        return (
-                          <tr key={key} className="border-b border-slate-100 last:border-0">
-                            <td className="py-2 text-slate-700 capitalize">{key.replace(/_/g, ' ')}</td>
-                            <td className="py-2 text-right font-mono text-slate-700">
-                              {typeof rlVal === 'number' ? rlVal.toFixed(4) : rlVal}
-                            </td>
-                            <td className="py-2 text-right font-mono text-slate-700">
-                              {typeof rfVal === 'number' ? rfVal.toFixed(4) : rfVal ?? '—'}
-                            </td>
-                          </tr>
-                        )
-                      })}
+                      {Object.entries(
+                        modelos.modelos.random_forest.metricas_validacion
+                      ).map(([key, value]) => (
+                        <tr key={key} className="border-b border-slate-100 last:border-0">
+                          <td className="py-2 text-slate-700 capitalize">{key.replace(/_/g, ' ')}</td>
+                          <td className="py-2 text-right font-mono text-slate-700">
+                            {typeof value === 'number' ? value.toFixed(4) : value}
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

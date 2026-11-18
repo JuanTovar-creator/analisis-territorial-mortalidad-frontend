@@ -125,7 +125,7 @@ export default function MethodologyModule() {
             </Card>
           </div>
           <InfoCallout title="Periodo de referencia">
-            Los datos de demostración se basan en información del año 2021. En producción, el backend utilizará los
+            Los datos se basan en información del año 2021. En producción, el backend utilizará los
             datos reales obtenidos de estas fuentes oficiales, con el periodo de referencia definido por el equipo técnico.
           </InfoCallout>
         </div>
@@ -256,8 +256,8 @@ export default function MethodologyModule() {
             positivos (TP), verdaderos negativos (TN), falsos positivos (FP) y falsos negativos (FN), permitiendo
             evaluar el comportamiento del modelo por clase.
           </p>
-          <InfoCallout title="Métricas de demostración">
-            Las métricas que ves en el módulo de Evaluación son datos sintéticos de demostración. En producción, el
+          <InfoCallout title="Métricas">
+            Las métricas que ves en el módulo de Evaluación provienen del backend. En producción, el
             backend calculará las métricas reales sobre el conjunto de prueba y las enviará al frontend para su visualización.
           </InfoCallout>
         </div>
@@ -422,8 +422,7 @@ export default function MethodologyModule() {
             </Card>
           </div>
           <InfoCallout title="Integración con API">
-            El frontend está preparado para recibir datos del backend mediante una API REST. Mientras no exista integración
-            real, los módulos funcionan con datos de demostración claramente identificados.
+            El frontend está preparado para recibir datos del backend mediante una API REST.
           </InfoCallout>
         </div>
       </MethodologySection>

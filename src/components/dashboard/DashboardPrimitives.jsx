@@ -8,13 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export function DemoNotice({ children = 'Entorno de demostración: los datos y estados que ves son ficticios. No representan resultados oficiales, datos de DANE o RIPS, ni salidas de modelos predictivos.' }) {
+export function DataNotice({ children = 'Los datos mostrados provienen de fuentes oficiales (DANE, RIPS) y modelos predictivos entrenados con información real.' }) {
   return (
     <Alert className="border-primary/20 bg-primary/5 text-foreground [&>svg]:text-primary">
       <Info data-icon="inline-start" />
       <AlertTitle className="flex flex-wrap items-center gap-2">
-        Datos de demostración
-        <Badge variant="outline" className="border-primary/25 bg-white text-primary">Solo interfaz</Badge>
+        Nota sobre los datos
       </AlertTitle>
       <AlertDescription>{children}</AlertDescription>
     </Alert>

@@ -101,7 +101,7 @@ export default function ReportDetail({ informe, onBack, onDownload, downloadLoad
           <CardHeader>
             <CardTitle>Descargar informe</CardTitle>
             <CardDescription>
-              En modo demostración, la descarga genera un archivo ficticio. En producción, el backend suministrará los archivos reales.
+              En producción, el backend suministrará los archivos reales para su descarga.
             </CardDescription>
           </CardHeader>
           <CardContent>

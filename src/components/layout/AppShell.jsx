@@ -72,9 +72,9 @@ function SidebarContent({ role, onNavigate }) {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-xs font-medium text-white">{user?.name}</span>
-            <span className="mt-0.5 block text-[11px] text-slate-400">{ROLE_LABELS[role]} · Demo</span>
+            <span className="mt-0.5 block text-[11px] text-slate-400">{ROLE_LABELS[role]}</span>
           </span>
-          <Button type="button" variant="ghost" size="icon-sm" className="text-slate-300 hover:bg-white/10 hover:text-white" onClick={handleSignOut} aria-label="Salir del demo">
+          <Button type="button" variant="ghost" size="icon-sm" className="text-slate-300 hover:bg-white/10 hover:text-white" onClick={handleSignOut} aria-label="Cerrar sesión">
             <LogOut aria-hidden="true" />
           </Button>
         </div>

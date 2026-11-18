@@ -67,7 +67,7 @@ export default function LoginPage() {
           </p>
           <div className="mt-8 flex items-center gap-3 text-xs text-slate-300">
             <span className="grid size-8 place-items-center rounded-lg bg-white/8"><ShieldCheck size={16} aria-hidden="true" /></span>
-            Acceso de demostración para dos perfiles
+            Acceso para dos perfiles de usuario
           </div>
         </div>
         <p className="relative text-xs text-slate-400">Interfaz en desarrollo · Modo claro</p>
@@ -106,7 +106,7 @@ export default function LoginPage() {
                 </FieldGroup>
 
                 <fieldset className="flex flex-col gap-2">
-                  <legend className="text-sm font-medium">Perfil para la demostración</legend>
+                  <legend className="text-sm font-medium">Selecciona tu perfil</legend>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {roles.map(({ id, name, description, icon: Icon }) => (
                       <label key={id} className="relative cursor-pointer">
@@ -124,16 +124,16 @@ export default function LoginPage() {
                 </fieldset>
 
                 <Button type="submit" size="lg" className="mt-1 h-10 w-full" disabled={isSubmitting} aria-busy={isSubmitting}>
-                  {isSubmitting ? <><span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" /> Preparando acceso demo…</> : <>Continuar como {role === 'admin' ? 'administrador' : 'cliente'} <ArrowRight data-icon="inline-end" /></>}
+                  {isSubmitting ? <><span className="size-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" /> Ingresando…</> : <>Continuar como {role === 'admin' ? 'administrador' : 'cliente'} <ArrowRight data-icon="inline-end" /></>}
                 </Button>
               </form>
             </CardContent>
           </Card>
           <Alert className="mt-4 border-slate-200 bg-white text-muted-foreground [&>svg]:text-primary">
             <ShieldCheck data-icon="inline-start" />
-            <AlertDescription className="text-xs leading-5">Modo de demostración local. El formulario valida el formato, pero no autentica usuarios ni protege datos; no hay una API de autenticación conectada.</AlertDescription>
+            <AlertDescription className="text-xs leading-5">Entorno local. El formulario valida el formato de entrada.</AlertDescription>
           </Alert>
-          <div className="mt-5 text-center text-[11px] text-slate-400">{APP_NAME} · Entorno de demostración</div>
+          <div className="mt-5 text-center text-[11px] text-slate-400">{APP_NAME}</div>
         </div>
       </section>
     </main>

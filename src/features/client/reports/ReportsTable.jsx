@@ -45,7 +45,7 @@ export default function ReportsTable({ informes, onViewDetail, onDownload, downl
       <CardHeader>
         <CardTitle>Informes disponibles</CardTitle>
         <CardDescription>
-          {informes.length} informe{informes.length !== 1 ? 's' : ''} encontrado{informes.length !== 1 ? 's' : ''}. Datos de demostración.
+          {informes.length} informe{informes.length !== 1 ? 's' : ''} encontrado{informes.length !== 1 ? 's' : ''}.
         </CardDescription>
       </CardHeader>
       <CardContent>

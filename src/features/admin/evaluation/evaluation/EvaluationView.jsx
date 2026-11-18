@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BarChart3, Info } from 'lucide-react'
-import { DemoBadge } from '@/components/dashboard/DemoBadge'
+import { BarChart3 } from 'lucide-react'
 import { StatePanel } from '@/components/dashboard/DashboardPrimitives'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldContent, FieldLabel } from '@/components/ui/field'
@@ -8,12 +7,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import MetricsCards from '@/features/admin/training/results/MetricsCards'
 import MetricsChart from '@/features/admin/training/results/MetricsChart'
 import ConfusionMatrix from '@/features/admin/training/results/ConfusionMatrix'
-import { modelTypes } from '@/features/admin/training/demo/training-demo'
-import { getEvaluationMetrics } from '@/services/evaluation'
+import { getModelComparison } from '@/services/modelComparison'
+
+// Mapeo de modelos del backend a nombres amigables
+const MODELS = [
+  { id: 'regresion_lineal', name: 'Regresión Lineal' },
+  { id: 'random_forest', name: 'Random Forest' },
+]
 
 export default function EvaluationView() {
-  const [model, setModel] = useState('logistic-regression')
-  const [results, setResults] = useState(null)
+  const [model, setModel] = useState('regresion_lineal')
+  const [comparisonData, setComparisonData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -21,20 +25,57 @@ export default function EvaluationView() {
     let cancelled = false
     setLoading(true)
     setError(null)
-    getEvaluationMetrics(model)
+
+    getModelComparison()
       .then(data => {
-        if (!cancelled) setResults(data)
+        if (!cancelled) {
+          setComparisonData(data)
+          // Verificar si el modelo seleccionado existe en los datos
+          if (data.modelos && !data.modelos[model]) {
+            // Cambiar al primer modelo disponible
+            const available = Object.keys(data.modelos)[0]
+            if (available) setModel(available)
+          }
+        }
       })
       .catch(err => {
-        if (!cancelled) setError(err.message || 'Error al cargar las métricas de evaluación')
+        if (!cancelled) {
+          if (err.message && err.message.includes('404')) {
+            setError('Los modelos aún no han sido entrenados y evaluados. Primero debes ejecutar el entrenamiento desde el módulo correspondiente.')
+          } else {
+            setError(err.message || 'Error al cargar las métricas de evaluación')
+          }
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
       })
     return () => { cancelled = true }
-  }, [model])
+  }, [])
 
-  const selectedModelDef = modelTypes.find(m => m.id === model)
+  const selectedModelDef = MODELS.find(m => m.id === model)
+  const modelData = comparisonData?.modelos?.[model]
+
+  // Extraer métricas de clasificación del modelo seleccionado
+  const classificationMetrics = modelData?.metricas_clasificacion_validacion || null
+  const regressionMetrics = modelData?.metricas_validacion || null
+
+  // Métricas de clasificación formateadas para los componentes visuales
+  // El backend devuelve proporciones (0.0-1.0), las convertimos a porcentajes para visualización
+  const displayMetrics = classificationMetrics ? {
+    accuracy: classificationMetrics.accuracy * 100,
+    precision: classificationMetrics.precision * 100,
+    recall: classificationMetrics.recall * 100,
+    f1: classificationMetrics.f1_score * 100,
+  } : null
+
+  // Matriz de confusión del backend
+  const confusionMatrix = classificationMetrics?.matriz_confusion ? {
+    tp: classificationMetrics.matriz_confusion.TP,
+    tn: classificationMetrics.matriz_confusion.TN,
+    fp: classificationMetrics.matriz_confusion.FP,
+    fn: classificationMetrics.matriz_confusion.FN,
+  } : null
 
   if (loading) {
     return (
@@ -52,10 +93,10 @@ export default function EvaluationView() {
     )
   }
 
-  if (!results) {
+  if (!comparisonData || !modelData) {
     return (
       <div className="flex flex-col gap-6">
-        <StatePanel title="Sin métricas de evaluación" description="No hay resultados de evaluación disponibles. El backend debe completar la evaluación primero." />
+        <StatePanel title="Sin métricas de evaluación" description="No hay resultados de evaluación disponibles. Los modelos deben ser entrenados y evaluados primero." />
       </div>
     )
   }
@@ -64,14 +105,11 @@ export default function EvaluationView() {
     <div className="flex flex-col gap-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Evaluación de modelos</CardTitle>
-              <CardDescription className="mt-1">
-                Consulta las métricas de evaluación final de cada modelo sobre el 15% de prueba.
-              </CardDescription>
-            </div>
-            <DemoBadge>Datos sintéticos de demostración</DemoBadge>
+          <div>
+            <CardTitle>Evaluación de modelos</CardTitle>
+            <CardDescription className="mt-1">
+              Consulta las métricas de evaluación de cada modelo sobre el conjunto de validación.
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
@@ -85,7 +123,7 @@ export default function EvaluationView() {
                   <SelectValue placeholder="Selecciona un modelo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {modelTypes.map(mt => (
+                  {MODELS.map(mt => (
                     <SelectItem key={mt.id} value={mt.id}>
                       {mt.name}
                     </SelectItem>
@@ -94,44 +132,59 @@ export default function EvaluationView() {
               </Select>
               {selectedModelDef && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  {selectedModelDef.name} — métricas de demostración sobre el conjunto de prueba (15%).
+                  {selectedModelDef.name} — métricas de validación sobre el conjunto de validación (15%).
                 </p>
               )}
             </FieldContent>
           </Field>
 
-          {/* Context notice */}
-          <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-            <Info size={16} className="mt-0.5 text-blue-600 shrink-0" aria-hidden="true" />
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-blue-800">
-                Demostración de evaluación final
-              </p>
-              <p className="text-xs text-blue-700">
-                Las métricas mostradas representan una demostración de evaluación final sobre el 15% de prueba, respetando la distribución 70% entrenamiento, 15% validación y 15% prueba. No se ejecutó una evaluación real.
-              </p>
-              <p className="text-xs text-blue-700">
-                Esta interfaz está preparada para recibir resultados reales de la API en una etapa posterior.
-              </p>
+          {/* Métricas de regresión */}
+          {regressionMetrics && (
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800 mb-3">
+                Métricas de regresión — {selectedModelDef?.name}
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center">
+                  <p className="text-xs font-medium text-muted-foreground">MAE</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">
+                    {regressionMetrics.MAE?.toFixed(4) ?? '—'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center">
+                  <p className="text-xs font-medium text-muted-foreground">RMSE</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">
+                    {regressionMetrics.RMSE?.toFixed(4) ?? '—'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-center">
+                  <p className="text-xs font-medium text-muted-foreground">R²</p>
+                  <p className="text-2xl font-bold text-slate-800 mt-1">
+                    {regressionMetrics.R2?.toFixed(4) ?? '—'}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Metrics cards */}
-          <div>
-            <h3 className="text-sm font-semibold text-slate-800 mb-3">
-              Métricas — {selectedModelDef?.name}
-            </h3>
-            <MetricsCards metrics={results} />
-          </div>
+          {/* Metrics cards - clasificación */}
+          {displayMetrics && (
+            <div>
+              <h3 className="text-sm font-semibold text-slate-800 mb-3">
+                Métricas de clasificación — {selectedModelDef?.name}
+              </h3>
+              <MetricsCards metrics={displayMetrics} />
+            </div>
+          )}
 
           {/* Metrics chart */}
-          <MetricsChart metrics={results} />
+          {displayMetrics && <MetricsChart metrics={displayMetrics} />}
 
           {/* Confusion matrix */}
-          {results.confusionMatrix && (
+          {confusionMatrix && (
             <ConfusionMatrix
-              confusionMatrix={results.confusionMatrix}
-              positiveClass={results.positiveClass}
+              confusionMatrix={confusionMatrix}
+              positiveClass="Riesgo de mortalidad evitable (sí)"
             />
           )}
         </CardContent>

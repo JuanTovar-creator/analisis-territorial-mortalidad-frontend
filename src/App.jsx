@@ -8,7 +8,6 @@ import LoginPage from '@/features/auth/LoginPage'
 const AdminDashboard = lazy(() => import('@/features/admin/AdminDashboard'))
 const ClientDashboard = lazy(() => import('@/features/client/ClientDashboard'))
 const DataModule = lazy(() => import('@/features/admin/data/DataModule'))
-const TrainingModule = lazy(() => import('@/features/admin/training/TrainingModule'))
 const EvaluationModule = lazy(() => import('@/features/admin/evaluation/EvaluationModule'))
 const MunicipalitiesModule = lazy(() => import('@/features/client/municipalities/MunicipalitiesModule'))
 const ComparisonModule = lazy(() => import('@/features/client/comparison/ComparisonModule'))
@@ -36,7 +35,6 @@ function AppRoutes() {
       <Route path="/admin" element={<ProtectedRoute role="admin"><AppShell role="admin" /></ProtectedRoute>}>
         <Route index element={<Suspense fallback={<DashboardLoading />}><AdminDashboard /></Suspense>} />
         <Route path="data" element={<Suspense fallback={<DashboardLoading />}><DataModule /></Suspense>} />
-        <Route path="training" element={<Suspense fallback={<DashboardLoading />}><TrainingModule /></Suspense>} />
         <Route path="evaluation" element={<Suspense fallback={<DashboardLoading />}><EvaluationModule /></Suspense>} />
         <Route path="history" element={<ModulePlaceholder title="Historial" description="Registro de actividad y procesos." />} />
         <Route path="account" element={<ModulePlaceholder title="Mi cuenta" description="Configuración de la cuenta de administrador." />} />

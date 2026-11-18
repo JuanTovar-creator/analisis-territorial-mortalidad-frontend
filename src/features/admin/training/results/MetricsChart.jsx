@@ -9,7 +9,6 @@ export default function MetricsChart({ metrics }) {
     { name: 'Precision', value: metrics.precision },
     { name: 'Recall', value: metrics.recall },
     { name: 'F1-Score', value: metrics.f1 },
-    { name: 'ROC-AUC', value: metrics.auc },
   ]
 
   return (
@@ -17,7 +16,7 @@ export default function MetricsChart({ metrics }) {
       <CardHeader>
         <CardTitle>Métricas de clasificación</CardTitle>
         <CardDescription className="mt-1">
-          Datos sintéticos de demostración — no representan resultados reales.
+          Resultados reales de evaluación sobre el conjunto de validación.
         </CardDescription>
       </CardHeader>
       <CardContent>

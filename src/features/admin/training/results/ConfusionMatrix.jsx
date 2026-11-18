@@ -19,7 +19,7 @@ export default function ConfusionMatrix({ confusionMatrix, positiveClass }) {
       <CardHeader>
         <CardTitle>Matriz de confusión</CardTitle>
         <CardDescription className="mt-1">
-          Datos sintéticos de demostración — clase positiva: {positiveClass}
+          Resultados reales de validación — clase positiva: {positiveClass}
         </CardDescription>
       </CardHeader>
       <CardContent>

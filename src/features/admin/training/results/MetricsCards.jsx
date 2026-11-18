@@ -5,7 +5,6 @@ const metricLabels = {
   precision: { label: 'Precision', icon: 'crosshair' },
   recall: { label: 'Recall', icon: 'search' },
   f1: { label: 'F1-Score', icon: 'award' },
-  auc: { label: 'ROC-AUC', icon: 'trending-up' },
 }
 
 const metricColors = {
@@ -13,7 +12,6 @@ const metricColors = {
   precision: 'bg-blue-50 border-blue-200 text-blue-700',
   recall: 'bg-amber-50 border-amber-200 text-amber-700',
   f1: 'bg-purple-50 border-purple-200 text-purple-700',
-  auc: 'bg-rose-50 border-rose-200 text-rose-700',
 }
 
 function MetricCard({ name, value }) {
@@ -29,11 +27,6 @@ function MetricCard({ name, value }) {
         <span className="text-2xl font-bold text-slate-800">
           {typeof value === 'number' ? value.toFixed(2) : value}
         </span>
-        {name === 'auc' && (
-          <span className="text-[11px] text-muted-foreground">
-            Datos sintéticos de puntuaciones
-          </span>
-        )}
       </CardContent>
     </Card>
   )
@@ -43,12 +36,11 @@ export default function MetricsCards({ metrics }) {
   if (!metrics) return null
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       <MetricCard name="accuracy" value={metrics.accuracy} />
       <MetricCard name="precision" value={metrics.precision} />
       <MetricCard name="recall" value={metrics.recall} />
       <MetricCard name="f1" value={metrics.f1} />
-      <MetricCard name="auc" value={metrics.auc} />
     </div>
   )
 }

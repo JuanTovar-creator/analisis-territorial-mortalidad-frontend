@@ -18,7 +18,6 @@ export const ROLE_NAVIGATION = {
       items: [
         { title: 'Panel principal', path: '/admin', icon: LayoutDashboard },
         { title: 'Datos', path: '/admin/data', icon: Database },
-        { title: 'Entrenamiento', path: '/admin/training', icon: Activity },
         { title: 'Evaluación y publicación', path: '/admin/evaluation', icon: BookOpenCheck },
       ],
     },

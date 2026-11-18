@@ -1,19 +1,18 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 const PAGE_SIZE = 8
 
-function riesgoBadge(riesgo) {
-  const styles = {
-    'Bajo': 'border-emerald-200 bg-emerald-50 text-emerald-700',
-    'Moderado': 'border-blue-200 bg-blue-50 text-blue-700',
-    'Alto': 'border-amber-200 bg-amber-50 text-amber-700',
-    'Muy alto': 'border-red-200 bg-red-50 text-red-700',
-  }
-  return <Badge variant="outline" className={styles[riesgo] || styles['Moderado']}>{riesgo}</Badge>
+function formatPredicho(valor) {
+  if (valor === null || valor === undefined) return 'No disponible'
+  return `${(valor * 100).toFixed(2)}%`
+}
+
+function formatDiagnosticos(valor) {
+  if (valor === null || valor === undefined) return 'No disponible'
+  return valor.toLocaleString('es-CO')
 }
 
 export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
@@ -26,6 +25,11 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
     sorted.sort((a, b) => {
       let aVal = a[sortColumn]
       let bVal = b[sortColumn]
+
+      // Manejar valores nulos en ordenamiento
+      if (aVal === null || aVal === undefined) return 1
+      if (bVal === null || bVal === undefined) return -1
+
       if (typeof aVal === 'string') aVal = aVal.toLowerCase()
       if (typeof bVal === 'string') bVal = bVal.toLowerCase()
       if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1
@@ -60,10 +64,8 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
   const columns = [
     { key: 'municipio', label: 'Municipio' },
     { key: 'departamento', label: 'Departamento' },
-    { key: 'tipo', label: 'Tipo' },
-    { key: 'riesgo', label: 'Riesgo' },
-    { key: 'poblacion', label: 'Población' },
-    { key: 'tasaMortalidad', label: 'Tasa mortalidad' },
+    { key: 'promedioPredicho', label: '% predicho sin asistencia' },
+    { key: 'totalDiagnosticos', label: 'Total diagnósticos' },
   ]
 
   return (
@@ -103,10 +105,8 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
                   >
                     <td className="px-4 py-2.5 font-medium text-slate-800">{row.municipio}</td>
                     <td className="px-4 py-2.5 text-slate-600">{row.departamento}</td>
-                    <td className="px-4 py-2.5 text-slate-600">{row.tipo}</td>
-                    <td className="px-4 py-2.5">{riesgoBadge(row.riesgo)}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-600">{row.poblacion.toLocaleString('es-CO')}</td>
-                    <td className="px-4 py-2.5 text-right text-slate-600">{row.tasaMortalidad}</td>
+                    <td className="px-4 py-2.5 text-right font-mono text-slate-700">{formatPredicho(row.promedioPredicho)}</td>
+                    <td className="px-4 py-2.5 text-right text-slate-600">{formatDiagnosticos(row.totalDiagnosticos)}</td>
                   </tr>
                 ))
               ) : (
@@ -136,17 +136,41 @@ export default function MunicipalitiesTable({ data, onSelectMunicipality }) {
               >
                 Anterior
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setCurrentPage(page)}
-                  className="h-8 w-8 px-0 text-xs"
-                >
-                  {page}
-                </Button>
-              ))}
+              {(() => {
+                const delta = 2
+                const range = []
+                const rangeWithDots = []
+                for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+                  range.push(i)
+                }
+                if (currentPage - delta > 2) {
+                  rangeWithDots.push(1, '...')
+                } else {
+                  rangeWithDots.push(1)
+                }
+                rangeWithDots.push(...range)
+                if (currentPage + delta < totalPages - 1) {
+                  rangeWithDots.push('...', totalPages)
+                } else if (totalPages > 1) {
+                  rangeWithDots.push(totalPages)
+                }
+                return rangeWithDots.map((page, idx) => {
+                  if (page === '...') {
+                    return <span key={`dots-${idx}`} className="px-1 text-muted-foreground">…</span>
+                  }
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      className="h-8 w-8 px-0 text-xs"
+                    >
+                      {page}
+                    </Button>
+                  )
+                })
+              })()}
               <Button
                 variant="outline"
                 size="sm"

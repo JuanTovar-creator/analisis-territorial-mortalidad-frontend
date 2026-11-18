@@ -4,11 +4,11 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-export default function MunicipalitiesFilters({ search, onSearchChange, departamento, onDepartamentoChange, riesgo, onRiesgoChange, departamentos, riesgos }) {
+export default function MunicipalitiesFilters({ search, onSearchChange, departamento, onDepartamentoChange, departamentos }) {
   return (
     <Card>
       <CardContent className="pt-5">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field className="gap-1.5">
             <FieldLabel htmlFor="municipality-search">Buscar municipio</FieldLabel>
             <div className="relative">
@@ -32,20 +32,6 @@ export default function MunicipalitiesFilters({ search, onSearchChange, departam
                   <SelectItem value="">Todos los departamentos</SelectItem>
                   {departamentos.map((d) => (
                     <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </Field>
-          <Field className="gap-1.5">
-            <FieldLabel htmlFor="risk-filter">Nivel de riesgo</FieldLabel>
-            <Select value={riesgo} onValueChange={(value) => onRiesgoChange(value)} items={[{ label: 'Todos', value: '' }, ...riesgos.map(r => ({ label: r, value: r }))]}>
-              <SelectTrigger id="risk-filter" className="w-full bg-white"><SelectValue placeholder="Todos los niveles" /></SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="">Todos los niveles</SelectItem>
-                  {riesgos.map((r) => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
                   ))}
                 </SelectGroup>
               </SelectContent>

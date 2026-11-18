@@ -10,14 +10,12 @@ import MunicipalityDetail from './MunicipalityDetail'
 export default function MunicipalitiesModule() {
   const [municipalities, setMunicipalities] = useState([])
   const [departamentos, setDepartamentos] = useState([])
-  const [riesgos, setRiesgos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   // Filters
   const [search, setSearch] = useState('')
   const [departamento, setDepartamento] = useState('')
-  const [riesgo, setRiesgo] = useState('')
 
   // Detail view
   const [selectedMunicipality, setSelectedMunicipality] = useState(null)
@@ -31,7 +29,6 @@ export default function MunicipalitiesModule() {
         if (!cancelled) {
           setMunicipalities(data.municipalities || [])
           setDepartamentos(data.departamentos || [])
-          setRiesgos(data.riesgos || [])
         }
       })
       .catch(err => {
@@ -50,10 +47,9 @@ export default function MunicipalitiesModule() {
         m.municipio.toLowerCase().includes(searchLower) ||
         m.codigo.includes(searchLower)
       const matchesDepartamento = !departamento || m.departamento === departamento
-      const matchesRiesgo = !riesgo || m.riesgo === riesgo
-      return matchesSearch && matchesDepartamento && matchesRiesgo
+      return matchesSearch && matchesDepartamento
     })
-  }, [municipalities, search, departamento, riesgo])
+  }, [municipalities, search, departamento])
 
   if (loading) {
     return (
@@ -99,10 +95,7 @@ export default function MunicipalitiesModule() {
         onSearchChange={setSearch}
         departamento={departamento}
         onDepartamentoChange={setDepartamento}
-        riesgo={riesgo}
-        onRiesgoChange={setRiesgo}
         departamentos={departamentos}
-        riesgos={riesgos}
       />
 
       {/* Results count */}

@@ -2,12 +2,10 @@ import {
   Activity,
   BookOpenCheck,
   Database,
-  FileBarChart2,
   GitCompareArrows,
   LayoutDashboard,
   MapPinned,
   Settings2,
-  UserRound,
 } from 'lucide-react'
 
 export const ROLE_NAVIGATION = {
@@ -20,10 +18,6 @@ export const ROLE_NAVIGATION = {
         { title: 'Evaluación y publicación', path: '/admin/evaluation', icon: BookOpenCheck },
       ],
     },
-    {
-      label: 'CUENTA',
-      items: [{ title: 'Mi cuenta', path: '/admin/account', icon: UserRound }],
-    },
   ],
   client: [
     {
@@ -32,13 +26,7 @@ export const ROLE_NAVIGATION = {
         { title: 'Resumen general', path: '/client', icon: LayoutDashboard },
         { title: 'Municipios', path: '/client/municipalities', icon: MapPinned },
         { title: 'Comparación', path: '/client/comparison', icon: GitCompareArrows },
-        { title: 'Informes', path: '/client/reports', icon: FileBarChart2 },
-        { title: 'Metodología', path: '/client/methodology', icon: BookOpenCheck },
       ],
-    },
-    {
-      label: 'CUENTA',
-      items: [{ title: 'Mi cuenta', path: '/client/account', icon: UserRound }],
     },
   ],
 }

@@ -9,6 +9,7 @@ const AdminDashboard = lazy(() => import('@/features/admin/AdminDashboard'))
 const ClientDashboard = lazy(() => import('@/features/client/ClientDashboard'))
 const DataModule = lazy(() => import('@/features/admin/data/DataModule'))
 const EvaluationModule = lazy(() => import('@/features/admin/evaluation/EvaluationModule'))
+const MapModule = lazy(() => import('@/features/client/map/MapModule'))
 const MunicipalitiesModule = lazy(() => import('@/features/client/municipalities/MunicipalitiesModule'))
 const ComparisonModule = lazy(() => import('@/features/client/comparison/ComparisonModule'))
 const ReportsModule = lazy(() => import('@/features/client/reports/ReportsModule'))
@@ -40,6 +41,7 @@ function AppRoutes() {
       </Route>
       <Route path="/client" element={<ProtectedRoute role="client"><AppShell role="client" /></ProtectedRoute>}>
         <Route index element={<Suspense fallback={<DashboardLoading />}><ClientDashboard /></Suspense>} />
+        <Route path="map" element={<Suspense fallback={<DashboardLoading />}><MapModule /></Suspense>} />
         <Route path="municipalities" element={<Suspense fallback={<DashboardLoading />}><MunicipalitiesModule /></Suspense>} />
         <Route path="comparison" element={<Suspense fallback={<DashboardLoading />}><ComparisonModule /></Suspense>} />
         <Route path="reports" element={<Suspense fallback={<DashboardLoading />}><ReportsModule /></Suspense>} />
